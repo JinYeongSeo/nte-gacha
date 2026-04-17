@@ -2,47 +2,342 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>이환 가챠 시뮬레이터</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이환(NTE) 가챠 시뮬레이터</title>
     <style>
-        body { font-family: sans-serif; background-color: #1a1a2e; color: #fff; text-align: center; padding: 50px; }
-        h1 { color: #e94560; }
-        button { padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; background: #e94560; color: white; border: none; border-radius: 8px; transition: 0.2s; }
-        button:hover { background: #d0314c; }
-        #results { margin-top: 40px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 800px; margin-left: auto; margin-right: auto; }
-        .item { padding: 20px; border-radius: 8px; width: 100px; font-weight: bold; display: flex; align-items: center; justify-content: center; text-align: center; height: 80px; }
-        /* 등급별 색상 처리 */
-        .ssr { background: #ffd700; color: #000; box-shadow: 0 0 15px #ffd700; }
-        .sr { background: #a67c00; color: #fff; }
-        .r { background: #4a4a4a; color: #ccc; }
+        :root { --bg: #121212; --panel: #1e1e1e; --text: #e0e0e0; --s-color: #ffd700; --a-color: #b08dff; --r-color: #888; --skin-color: #ff69b4; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; text-align: center; }
+        h1 { color: #fff; margin-bottom: 10px; }
+        
+        /* 탭 UI */
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: #333; color: white; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .tab-btn.active { background: #e94560; }
+        
+        /* 대시보드 */
+        .dashboard { background: var(--panel); max-width: 800px; margin: 0 auto 20px auto; padding: 15px; border-radius: 10px; display: flex; justify-content: space-around; font-size: 18px; font-weight: bold; }
+        .dashboard span { color: #ffeb3b; }
+
+        /* 가챠 버튼 */
+        .controls { margin-bottom: 30px; }
+        .gacha-btn { padding: 15px 30px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; border-radius: 8px; margin: 0 10px; transition: 0.2s; }
+        .btn-single { background: #4caf50; color: white; }
+        .btn-multi { background: #2196f3; color: white; }
+        .gacha-btn:hover { filter: brightness(1.2); }
+        .gacha-btn:disabled { background: #555; cursor: not-allowed; }
+
+        /* 결과 화면 */
+        #current-results { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 900px; margin: 0 auto 40px auto; min-height: 120px; }
+        .item { width: 100px; height: 130px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; padding: 5px; text-align: center; box-sizing: border-box; background: #222; position: relative; }
+        .item img { width: 70px; height: 70px; object-fit: cover; border-radius: 50%; margin-bottom: 5px; background: #000; }
+        .item .rank { font-size: 12px; position: absolute; top: 5px; left: 5px; padding: 2px 5px; border-radius: 3px; color: #000; }
+        
+        /* 등급별 스타일 */
+        .item.s-rank { border: 2px solid var(--s-color); box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+        .item.s-rank .rank { background: var(--s-color); }
+        .item.a-rank { border: 2px solid var(--a-color); box-shadow: 0 0 10px rgba(176, 141, 255, 0.3); }
+        .item.a-rank .rank { background: var(--a-color); }
+        .item.skin { border: 2px solid var(--skin-color); box-shadow: 0 0 15px var(--skin-color); }
+        .item.skin .rank { background: var(--skin-color); color: white; }
+        .item.r-rank { border: 1px solid var(--r-color); color: #aaa; }
+        .item.r-rank .rank { background: var(--r-color); color: white; }
+
+        /* 히스토리 */
+        .history-section { display: flex; justify-content: space-between; max-width: 1000px; margin: 0 auto; gap: 20px; text-align: left; }
+        .history-box { flex: 1; background: var(--panel); padding: 20px; border-radius: 10px; max-height: 500px; overflow-y: auto; }
+        .history-box h3 { margin-top: 0; text-align: center; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .history-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .hist-item { display: flex; align-items: center; gap: 10px; background: #333; padding: 8px; border-radius: 5px; width: calc(50% - 5px); box-sizing: border-box; font-size: 14px; }
+        .hist-item img { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; }
+        .hist-s { color: var(--s-color); font-weight: bold; }
+        .hist-a { color: var(--a-color); font-weight: bold; }
+        .hist-skin { color: var(--skin-color); font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>이환 10연차 시뮬레이터</h1>
-    <button onclick="pullGacha10()">10회 돌리기</button>
-    <div id="results"></div>
+
+    <h1>이환(NTE) 가챠 시뮬레이터</h1>
+    
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchBanner('pickup')">픽업 캐릭터</button>
+        <button class="tab-btn" onclick="switchBanner('standard')">상시 캐릭터</button>
+        <button class="tab-btn" onclick="switchBanner('weapon')">픽업 아크(무기)</button>
+    </div>
+
+    <div class="dashboard">
+        <div>현재 배너: <span id="banner-name" style="color: #fff;">픽업 캐릭터</span></div>
+        <div>천장 스택: <span id="pity-count">0 / 90</span></div>
+        <div>총 뽑은 S급 개수: <span id="total-s">0</span>개</div>
+    </div>
+
+    <div class="controls">
+        <button class="gacha-btn btn-single" id="btn-1" onclick="pull(1)">1회 뽑기</button>
+        <button class="gacha-btn btn-multi" onclick="pull(10)">10연차 (10+1뽑)</button>
+    </div>
+
+    <div id="current-results">
+        </div>
+
+    <div class="history-section">
+        <div class="history-box">
+            <h3 class="hist-s">S급 & 스킨 획득 기록</h3>
+            <div class="history-list" id="history-s"></div>
+        </div>
+        <div class="history-box">
+            <h3 class="hist-a">A급 획득 기록</h3>
+            <div class="history-list" id="history-a"></div>
+        </div>
+    </div>
 
     <script>
-        // 확률 설정 (예시: SSR 0.6%, SR 5.1%, R 94.3%)
-        function pullSingle() {
-            const rng = Math.random() * 100;
+        // ==========================================
+        // [데이터베이스 설정]
+        // img 주소에 원하는 이미지 링크 넣으면 됨. 안 넣으면 기본 사각형 나옴.
+        // ==========================================
+        const DB = {
+            pickupChar: { name: "나나리", img: "https://via.placeholder.com/100/ffcccc?text=Pickup" },
+            standardChars: [
+                { name: "통상캐_A", img: "https://via.placeholder.com/100/cccccc?text=Std_A" },
+                { name: "통상캐_B", img: "https://via.placeholder.com/100/cccccc?text=Std_B" },
+                { name: "통상캐_C", img: "https://via.placeholder.com/100/cccccc?text=Std_C" },
+                { name: "통상캐_D", img: "https://via.placeholder.com/100/cccccc?text=Std_D" },
+                { name: "통상캐_E", img: "https://via.placeholder.com/100/cccccc?text=Std_E" },
+                { name: "통상캐_F", img: "https://via.placeholder.com/100/cccccc?text=Std_F" }
+            ],
+            pickupWeapon: { name: "한정 아크", img: "https://via.placeholder.com/100/ccffcc?text=Ark" },
+            standardWeapons: [
+                { name: "통상 아크_A", img: "https://via.placeholder.com/100/eeeeee?text=Std_Ark" }
+            ],
+            aChars: [
+                { name: "A급 캐릭_1", img: "https://via.placeholder.com/100/ccccff?text=A1" },
+                { name: "A급 캐릭_2", img: "https://via.placeholder.com/100/ccccff?text=A2" }
+            ],
+            skin: { name: "픽업캐 스킨", img: "https://via.placeholder.com/100/ffccff?text=Skin" },
+            rRank: { name: "B급 재화", img: "https://via.placeholder.com/100/444444?text=B", rank: 'R', class: 'r-rank' }
+        };
+
+        // ==========================================
+        // [상태 변수]
+        // ==========================================
+        let currentBanner = 'pickup'; // pickup, standard, weapon
+        let stats = {
+            pickupPity: 0,
+            standardPity: 0,
+            weaponPity: 0,
+            skinPity: 0,
+            totalS: 0
+        };
+
+        let historyS = [];
+        let historyA = [];
+
+        // ==========================================
+        // [배너 전환 로직]
+        // ==========================================
+        function switchBanner(bannerType) {
+            currentBanner = bannerType;
             
-            // 이환은 픽뚫이 없으므로 당첨 시 확정 픽업
-            if (rng <= 0.6) return { rank: 'SSR', name: '픽업 캐릭터', class: 'ssr' };
-            if (rng <= 5.7) return { rank: 'SR', name: 'A급 캐릭터', class: 'sr' };
-            return { rank: 'R', name: '일반 무기/재료', class: 'r' };
+            // 탭 UI 변경
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // 텍스트 및 무기 단챠버튼 비활성화 처리
+            const bannerName = { pickup: '픽업 캐릭터', standard: '상시 캐릭터', weapon: '픽업 아크(무기)' };
+            document.getElementById('banner-name').innerText = bannerName[bannerType];
+            
+            if (bannerType === 'weapon') {
+                document.getElementById('btn-1').disabled = true;
+                document.getElementById('btn-1').innerText = "무기는 10연차만";
+            } else {
+                document.getElementById('btn-1').disabled = false;
+                document.getElementById('btn-1').innerText = "1회 뽑기";
+            }
+
+            updateDashboard();
         }
 
-        function pullGacha10() {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = ''; // 기존 결과 초기화
+        function updateDashboard() {
+            let pityStr = "";
+            if (currentBanner === 'pickup') pityStr = `${stats.pickupPity} / 90`;
+            else if (currentBanner === 'standard') pityStr = `${stats.standardPity} / 90`;
+            else if (currentBanner === 'weapon') pityStr = `${stats.weaponPity} / 80`;
+
+            document.getElementById('pity-count').innerText = pityStr;
+            document.getElementById('total-s').innerText = stats.totalS;
+        }
+
+        // ==========================================
+        // [가챠 로직 코어]
+        // ==========================================
+        function rng(chance) {
+            return (Math.random() * 100) <= chance;
+        }
+
+        function getRandomItem(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function pullSingle(isExtraAPull = false) {
+            if (currentBanner === 'pickup') return pullCharPickup(isExtraAPull);
+            if (currentBanner === 'standard') return pullCharStandard(isExtraAPull);
+            if (currentBanner === 'weapon') return pullWeapon();
+        }
+
+        // 1. 캐릭터 픽업 로직 (픽뚫 없음, 스킨 있음)
+        function pullCharPickup(isExtraAPull) {
+            stats.pickupPity++;
+            stats.skinPity++;
             
-            for (let i = 0; i < 10; i++) {
-                const item = pullSingle();
-                const itemDiv = document.createElement('div');
-                itemDiv.className = `item ${item.class}`;
-                itemDiv.innerText = `${item.rank}\n${item.name}`;
-                resultsDiv.appendChild(itemDiv);
+            let sRate = 1.0;
+            if (stats.pickupPity >= 70) sRate = 19.81; // 소프트천장
+            if (stats.pickupPity >= 90) sRate = 100;   // 하드천장
+
+            // 스킨 체크 (0.2% 또는 200천장)
+            if (stats.skinPity >= 200 || rng(0.2)) {
+                stats.skinPity = 0; // 스킨 먹으면 스킨 천장만 초기화 (캐릭 천장은 유지)
+                return { ...DB.skin, rank: 'SKIN', class: 'skin' };
             }
+
+            // S급 체크
+            if (rng(sRate)) {
+                stats.pickupPity = 0;
+                stats.totalS++;
+                return { ...DB.pickupChar, rank: 'S', class: 's-rank' };
+            }
+
+            // A급 체크 (10+1 강제 확정 또는 기본 10% 확률)
+            if (isExtraAPull || rng(10)) {
+                return { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' };
+            }
+
+            return DB.rRank;
+        }
+
+        // 2. 캐릭터 상시 로직 (스킨 없음)
+        function pullCharStandard(isExtraAPull) {
+            stats.standardPity++;
+            
+            let sRate = 1.0;
+            if (stats.standardPity >= 70) sRate = 19.81;
+            if (stats.standardPity >= 90) sRate = 100;
+
+            if (rng(sRate)) {
+                stats.standardPity = 0;
+                stats.totalS++;
+                return { ...getRandomItem(DB.standardChars), rank: 'S', class: 's-rank' };
+            }
+
+            if (isExtraAPull || rng(10)) {
+                return { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' };
+            }
+
+            return DB.rRank;
+        }
+
+        // 3. 무기 로직 (10연차 전용, 60뽑 25%, 80뽑 확정)
+        function pullWeapon() {
+            stats.weaponPity++;
+            
+            let isS = false;
+            let isPickup = false;
+
+            if (stats.weaponPity >= 80) {
+                // 80천장: 무조건 픽업 무기
+                isS = true;
+                isPickup = true;
+            } else if (stats.weaponPity === 60) {
+                // 60뽑: 무조건 S급 등장하되, 픽업 확률 25%
+                isS = true;
+                isPickup = rng(25);
+            } else {
+                // 기본 3%
+                if (rng(3)) {
+                    isS = true;
+                    // 자연빵 S급 등장 시 픽업 확률 지정 안되어있지만 보통 50%로 가정. (짤에 명시 안됨)
+                    isPickup = rng(50);
+                }
+            }
+
+            if (isS) {
+                stats.totalS++;
+                if (isPickup) {
+                    stats.weaponPity = 0; // 픽업 먹으면 찐천장 초기화
+                    return { ...DB.pickupWeapon, rank: 'S', class: 's-rank' };
+                } else {
+                    return { ...getRandomItem(DB.standardWeapons), rank: 'S', class: 's-rank' };
+                }
+            }
+
+            // 무기도 10연차 시 A급 확정이 있는지 불명확하지만 A급 확률 넣음
+            if (rng(10)) return { ...getRandomItem(DB.aChars), name: "A급 아크", rank: 'A', class: 'a-rank' };
+            
+            return DB.rRank;
+        }
+
+        // ==========================================
+        // [뽑기 실행 및 화면 렌더링]
+        // ==========================================
+        function pull(times) {
+            const resultsDiv = document.getElementById('current-results');
+            resultsDiv.innerHTML = ''; // 화면 초기화
+            
+            let results = [];
+            
+            // 10연차면 '10+1' 로직으로 11번 돌림 (무기는 그냥 10번)
+            let loopCount = times;
+            if (times === 10 && currentBanner !== 'weapon') loopCount = 11;
+
+            for (let i = 0; i < loopCount; i++) {
+                // 11번째 뽑기는 무조건 A급 이상 보장 (isExtraAPull = true)
+                let isExtra = (times === 10 && i === 10 && currentBanner !== 'weapon');
+                let item = pullSingle(isExtra);
+                results.push(item);
+                
+                // 화면에 아이템 추가
+                const el = document.createElement('div');
+                el.className = `item ${item.class}`;
+                el.innerHTML = `
+                    <div class="rank">${item.rank}</div>
+                    <img src="${item.img}" alt="${item.name}">
+                    <div style="font-size: 11px;">${item.name}</div>
+                `;
+                resultsDiv.appendChild(el);
+
+                // 히스토리 기록
+                if (item.rank === 'S' || item.rank === 'SKIN') {
+                    historyS.unshift(item); // 최신이 위로 오게
+                } else if (item.rank === 'A') {
+                    historyA.unshift(item);
+                }
+            }
+
+            updateDashboard();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const histS_Div = document.getElementById('history-s');
+            const histA_Div = document.getElementById('history-a');
+            
+            histS_Div.innerHTML = historyS.map(item => `
+                <div class="hist-item">
+                    <img src="${item.img}">
+                    <div>
+                        <div class="${item.rank === 'SKIN' ? 'hist-skin' : 'hist-s'}">[${item.rank}]</div>
+                        <div>${item.name}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            histA_Div.innerHTML = historyA.map(item => `
+                <div class="hist-item">
+                    <img src="${item.img}">
+                    <div>
+                        <div class="hist-a">[A]</div>
+                        <div>${item.name}</div>
+                    </div>
+                </div>
+            `).join('');
         }
     </script>
 </body>
