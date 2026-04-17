@@ -836,7 +836,7 @@
                 let isS = false; let isPickup = false;
                 
                 if (s.pickupGuarPity >= 80) { isS = true; isPickup = true; }
-                else if (s.sGuarPity >= 60) { isS = true; isPickup = Math.random()*100 < 75; } 
+                else if (s.sGuarPity >= 60) { isS = true; isPickup = Math.random()*100 < 25; } 
                 else if (roll < 3.0) { isS = true; isPickup = Math.random()*100 < 75; } 
                 
                 if (isS) {
