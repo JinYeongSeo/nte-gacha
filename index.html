@@ -3,341 +3,538 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이환(NTE) 가챠 시뮬레이터</title>
+    <title>이환NTE 가챠 시뮬레이터</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
     <style>
-        :root { --bg: #121212; --panel: #1e1e1e; --text: #e0e0e0; --s-color: #ffd700; --a-color: #b08dff; --r-color: #888; --skin-color: #ff69b4; }
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; text-align: center; }
-        h1 { color: #fff; margin-bottom: 10px; }
+        :root { 
+            --bg: #0d0d12; 
+            --panel: #1a1a24; 
+            --text: #ececec; 
+            --s-color: #ffcc00; 
+            --a-color: #b388ff; 
+            --r-color: #78788a; 
+            --skin-color: #ff66b2; 
+            --veh-color: #00e5ff;
+            --border-radius: 14px;
+            --accent: #e94560;
+        }
         
-        /* 탭 UI */
-        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { background: #333; color: white; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        .tab-btn.active { background: #e94560; }
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 30px 20px; 
+            text-align: center; 
+        }
         
-        /* 대시보드 */
-        .dashboard { background: var(--panel); max-width: 800px; margin: 0 auto 20px auto; padding: 15px; border-radius: 10px; display: flex; justify-content: space-around; font-size: 18px; font-weight: bold; }
-        .dashboard span { color: #ffeb3b; }
-
-        /* 가챠 버튼 */
-        .controls { margin-bottom: 30px; }
-        .gacha-btn { padding: 15px 30px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; border-radius: 8px; margin: 0 10px; transition: 0.2s; }
-        .btn-single { background: #4caf50; color: white; }
-        .btn-multi { background: #2196f3; color: white; }
-        .gacha-btn:hover { filter: brightness(1.2); }
-        .gacha-btn:disabled { background: #555; cursor: not-allowed; }
-
-        /* 결과 화면 */
-        #current-results { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 900px; margin: 0 auto 40px auto; min-height: 120px; }
-        .item { width: 100px; height: 130px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; padding: 5px; text-align: center; box-sizing: border-box; background: #222; position: relative; }
-        .item img { width: 70px; height: 70px; object-fit: cover; border-radius: 50%; margin-bottom: 5px; background: #000; }
-        .item .rank { font-size: 12px; position: absolute; top: 5px; left: 5px; padding: 2px 5px; border-radius: 3px; color: #000; }
+        h1 { color: #fff; margin-bottom: 30px; font-weight: 800; letter-spacing: -0.5px; }
         
-        /* 등급별 스타일 */
-        .item.s-rank { border: 2px solid var(--s-color); box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
-        .item.s-rank .rank { background: var(--s-color); }
-        .item.a-rank { border: 2px solid var(--a-color); box-shadow: 0 0 10px rgba(176, 141, 255, 0.3); }
-        .item.a-rank .rank { background: var(--a-color); }
-        .item.skin { border: 2px solid var(--skin-color); box-shadow: 0 0 15px var(--skin-color); }
-        .item.skin .rank { background: var(--skin-color); color: white; }
-        .item.r-rank { border: 1px solid var(--r-color); color: #aaa; }
-        .item.r-rank .rank { background: var(--r-color); color: white; }
+        /* 탭 UI 개선 */
+        .tabs { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; }
+        .tab-btn { 
+            background: #2a2a36; 
+            color: #aaa; 
+            border: 2px solid transparent; 
+            padding: 12px 28px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            font-weight: 700; 
+            transition: all 0.2s ease; 
+        }
+        .tab-btn:hover { background: #353545; color: #fff; }
+        .tab-btn.active { 
+            background: rgba(233, 69, 96, 0.15); 
+            color: var(--accent); 
+            border-color: var(--accent); 
+        }
+        
+        /* 대시보드 개선 */
+        .dashboard { max-width: 1000px; margin: 0 auto 35px auto; display: flex; flex-direction: column; gap: 15px; }
+        .dash-row { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .dash-box { 
+            background: var(--panel); 
+            padding: 24px 20px; 
+            border-radius: var(--border-radius); 
+            flex: 1 1 200px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            box-sizing: border-box; 
+            min-width: 200px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .box-header { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; font-weight: 600; color: #9aa; width: 100%; }
+        .icon-img { width: 24px; height: 24px; object-fit: cover; border-radius: 50%; background: #000; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .dash-box span { color: #fff; font-size: 28px; font-weight: 800; margin-top: 12px; letter-spacing: 0.5px; }
 
-        /* 히스토리 */
-        .history-section { display: flex; justify-content: space-between; max-width: 1000px; margin: 0 auto; gap: 20px; text-align: left; }
-        .history-box { flex: 1; background: var(--panel); padding: 20px; border-radius: 10px; max-height: 500px; overflow-y: auto; }
-        .history-box h3 { margin-top: 0; text-align: center; border-bottom: 1px solid #444; padding-bottom: 10px; }
-        .history-list { display: flex; flex-wrap: wrap; gap: 10px; }
-        .hist-item { display: flex; align-items: center; gap: 10px; background: #333; padding: 8px; border-radius: 5px; width: calc(50% - 5px); box-sizing: border-box; font-size: 14px; }
-        .hist-item img { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; }
-        .hist-s { color: var(--s-color); font-weight: bold; }
-        .hist-a { color: var(--a-color); font-weight: bold; }
-        .hist-skin { color: var(--skin-color); font-weight: bold; }
+        /* 컨트롤 영역 */
+        .action-area { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto 40px auto; flex-wrap: wrap; gap: 20px; }
+        .controls { display: flex; gap: 12px; }
+        .gacha-btn { 
+            padding: 16px 36px; 
+            font-size: 18px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 10px; 
+            transition: all 0.2s; 
+            color: white; 
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .btn-single { background: linear-gradient(135deg, #4caf50, #388e3c); }
+        .btn-multi { background: linear-gradient(135deg, #2196f3, #1976d2); }
+        .gacha-btn:hover { transform: translateY(-2px); filter: brightness(1.15); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+        .gacha-btn:active { transform: translateY(1px); }
+
+        .reset-group { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-reset { 
+            padding: 12px 20px; 
+            font-size: 14px; 
+            background: #333344; 
+            color: #ddd; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: 0.2s;
+        }
+        .btn-reset:hover { background: #44445a; color: #fff; }
+        .btn-all-reset { background: rgba(244, 67, 54, 0.15) !important; color: #f44336 !important; border-color: rgba(244, 67, 54, 0.3) !important; }
+        .btn-all-reset:hover { background: #f44336 !important; color: #fff !important; }
+
+        /* 결과 영역 */
+        #current-results { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 1000px; margin: 0 auto 50px auto; min-height: 160px; }
+        .item { 
+            width: 120px; 
+            height: 160px; 
+            border-radius: 12px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 700; 
+            padding: 10px; 
+            text-align: center; 
+            box-sizing: border-box; 
+            background: linear-gradient(180deg, #2a2a36 0%, #1e1e28 100%); 
+            position: relative; 
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .item:hover { transform: scale(1.05); z-index: 10; }
+        .item img { width: 70px; height: 70px; object-fit: cover; border-radius: 50%; margin-bottom: 10px; background: #000; box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
+        .item .rank { font-size: 13px; position: absolute; top: 8px; left: 8px; padding: 3px 8px; border-radius: 6px; font-weight: 800; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .item .name-tag { font-size: 13px; color: #fff; margin-bottom: 4px; word-break: keep-all; }
+        .item .note, .item .dupe-msg { font-size: 11px; margin-top: 4px; line-height: 1.2; font-weight: 600; }
+        .item .note { color: #4ade80; }
+        .item .dupe-msg { color: #fbbf24; }
+        
+        .item.s-rank { border: 2px solid var(--s-color); box-shadow: 0 0 20px rgba(255, 204, 0, 0.2); background: linear-gradient(180deg, rgba(255,204,0,0.1) 0%, #1e1e28 100%); }
+        .item.s-rank .rank { background: var(--s-color); color: #000; }
+        .item.a-rank { border: 2px solid var(--a-color); box-shadow: 0 0 15px rgba(179, 136, 255, 0.15); }
+        .item.a-rank .rank { background: var(--a-color); color: #fff; }
+        .item.skin { border: 2px solid var(--skin-color); box-shadow: 0 0 20px rgba(255, 102, 178, 0.2); }
+        .item.skin .rank { background: var(--skin-color); color: #fff; }
+        .item.vehicle { border: 2px solid var(--veh-color); box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); }
+        .item.vehicle .rank { background: var(--veh-color); color: #000; }
+        .item.r-rank { border: 1px solid var(--r-color); color: #aaa; background: #1a1a24; }
+        .item.r-rank .rank { background: var(--r-color); color: #fff; }
+
+        /* 필터 및 기록 영역 */
+        .history-section { display: flex; flex-direction: column; max-width: 1100px; margin: 0 auto; gap: 20px; text-align: left; }
+        
+        .filter-bar { 
+            display: flex; 
+            gap: 15px; 
+            background: var(--panel); 
+            padding: 15px 25px; 
+            border-radius: var(--border-radius); 
+            align-items: center; 
+            justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .filter-group { display: flex; gap: 15px; align-items: center; }
+        .filter-bar select, .filter-bar input {
+            background: #2a2a36;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+        .filter-bar select:focus, .filter-bar input:focus { border-color: var(--a-color); box-shadow: 0 0 0 2px rgba(179,136,255,0.2); }
+        .filter-bar input::placeholder { color: #888; }
+        .filter-title { font-weight: 700; color: #aaa; font-size: 15px; }
+
+        .history-container { display: flex; justify-content: space-between; gap: 25px; }
+        .history-box { flex: 1; background: var(--panel); padding: 25px; border-radius: var(--border-radius); max-height: 600px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05); }
+        
+        /* 스크롤바 커스텀 */
+        .history-box::-webkit-scrollbar { width: 8px; }
+        .history-box::-webkit-scrollbar-track { background: #1a1a24; border-radius: 4px; }
+        .history-box::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        .history-box::-webkit-scrollbar-thumb:hover { background: #666; }
+
+        .history-box h3 { margin-top: 0; text-align: left; border-bottom: 2px solid #333; padding-bottom: 15px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+        .history-list { display: flex; flex-direction: column; gap: 10px; }
+        .hist-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            background: #252530; 
+            padding: 12px; 
+            border-radius: 8px; 
+            font-size: 15px; 
+            transition: 0.2s;
+            border-left: 4px solid transparent;
+        }
+        .hist-item:hover { background: #2d2d3a; transform: translateX(3px); }
+        .hist-item img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .hist-info { display: flex; flex-direction: column; gap: 4px; }
+        .hist-rank-tag { font-size: 12px; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-block; width: max-content; }
+        
+        .hist-item.type-s { border-left-color: var(--s-color); }
+        .hist-item.type-a { border-left-color: var(--a-color); }
+        .hist-item.type-skin { border-left-color: var(--skin-color); }
+        
+        .tag-s { background: rgba(255,204,0,0.15); color: var(--s-color); }
+        .tag-a { background: rgba(179,136,255,0.15); color: var(--a-color); }
+        .tag-skin { background: rgba(255,102,178,0.15); color: var(--skin-color); }
+        .hist-name { font-weight: 600; color: #eee; }
     </style>
 </head>
 <body>
 
-    <h1>이환(NTE) 가챠 시뮬레이터</h1>
+    <h1>이환NTE 가챠 시뮬레이터</h1>
     
     <div class="tabs">
         <button class="tab-btn active" onclick="switchBanner('pickup')">픽업 캐릭터</button>
         <button class="tab-btn" onclick="switchBanner('standard')">상시 캐릭터</button>
-        <button class="tab-btn" onclick="switchBanner('weapon')">픽업 아크(무기)</button>
+        <button class="tab-btn" onclick="switchBanner('weapon')">픽업 아크</button>
     </div>
 
     <div class="dashboard">
-        <div>현재 배너: <span id="banner-name" style="color: #fff;">픽업 캐릭터</span></div>
-        <div>천장 스택: <span id="pity-count">0 / 90</span></div>
-        <div>총 뽑은 S급 개수: <span id="total-s">0</span>개</div>
-    </div>
-
-    <div class="controls">
-        <button class="gacha-btn btn-single" id="btn-1" onclick="pull(1)">1회 뽑기</button>
-        <button class="gacha-btn btn-multi" onclick="pull(10)">10연차 (10+1뽑)</button>
-    </div>
-
-    <div id="current-results">
+        <div class="dash-row">
+            <div class="dash-box">
+                <div class="box-header"><img src="img/Icon_Ringstone.webp" class="icon-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjNTU1Ii8+PC9zdmc+'" alt="I"> 소모 재화</div>
+                <span id="spent-currency">0</span>
+            </div>
+            <div class="dash-box">
+                <div class="box-header"><img src="img/gold_chequer.webp" class="icon-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjNTU1Ii8+PC9zdmc+'" alt="I"> 탈차원 기물</div>
+                <span id="tal-item">0</span>
+            </div>
+            <div class="dash-box">
+                <div class="box-header"><img src="img/silver_chequer.webp" class="icon-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjNTU1Ii8+PC9zdmc+'" alt="I"> 방향치 기물</div>
+                <span id="bang-item">0</span>
+            </div>
         </div>
+        <div class="dash-row">
+            <div class="dash-box">
+                <div class="box-header">현재 천장 스택</div>
+                <span id="pity-count">0 / 90</span>
+            </div>
+            <div class="dash-box">
+                <div class="box-header" style="color: var(--s-color);">S급 획득 수</div>
+                <span id="total-s" style="color: var(--s-color);">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-area">
+        <div class="controls">
+            <button class="gacha-btn btn-single" id="btn-1" onclick="pull(1)">1회 뽑기</button>
+            <button class="gacha-btn btn-multi" onclick="pull(10)">10회 뽑기</button>
+        </div>
+        <div class="reset-group">
+            <button class="btn-reset" onclick="resetSpecific('history')">기록 삭제</button>
+            <button class="btn-reset" onclick="resetSpecific('stack')">스택 초기화</button>
+            <button class="btn-reset btn-all-reset" onclick="resetSpecific('all')">전체 초기화</button>
+        </div>
+    </div>
+
+    <div id="current-results"></div>
 
     <div class="history-section">
-        <div class="history-box">
-            <h3 class="hist-s">S급 & 스킨 획득 기록</h3>
-            <div class="history-list" id="history-s"></div>
+        <div class="filter-bar">
+            <span class="filter-title">획득 기록 필터</span>
+            <div class="filter-group">
+                <select id="type-filter" onchange="renderHistory()">
+                    <option value="ALL">전체 보기</option>
+                    <option value="CHAR">캐릭터만</option>
+                    <option value="ARK">아크(무기)만</option>
+                    <option value="ETC">스킨 / 탈것</option>
+                </select>
+                <input type="text" id="name-filter" placeholder="이름으로 검색..." oninput="renderHistory()">
+            </div>
         </div>
-        <div class="history-box">
-            <h3 class="hist-a">A급 획득 기록</h3>
-            <div class="history-list" id="history-a"></div>
+
+        <div class="history-container">
+            <div class="history-box">
+                <h3 style="color: var(--s-color);">S급 & 외형 기록</h3>
+                <div class="history-list" id="history-s"></div>
+            </div>
+            <div class="history-box">
+                <h3 style="color: var(--a-color);">A급 획득 기록</h3>
+                <div class="history-list" id="history-a"></div>
+            </div>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // [데이터베이스 설정]
-        // img 주소에 원하는 이미지 링크 넣으면 됨. 안 넣으면 기본 사각형 나옴.
-        // ==========================================
         const DB = {
-            pickupChar: { name: "나나리", img: "nanari.webp" },
+            pickupChar: { name: "나나리", type: "S_CHAR", img: "img/nanari.webp" },
             standardChars: [
-                { name: "통상캐_A", img: "https://via.placeholder.com/100/cccccc?text=Std_A" },
-                { name: "통상캐_B", img: "https://via.placeholder.com/100/cccccc?text=Std_B" },
-                { name: "통상캐_C", img: "https://via.placeholder.com/100/cccccc?text=Std_C" },
-                { name: "통상캐_D", img: "https://via.placeholder.com/100/cccccc?text=Std_D" },
-                { name: "통상캐_E", img: "https://via.placeholder.com/100/cccccc?text=Std_E" },
-                { name: "통상캐_F", img: "https://via.placeholder.com/100/cccccc?text=Std_F" }
+                { name: "사키리", type: "S_CHAR", img: "img/sakiri.webp" },
+                { name: "백장", type: "S_CHAR", img: "img/baek.webp" },
+                { name: "하토르", type: "S_CHAR", img: "img/hator.webp" },
+                { name: "파디아", type: "S_CHAR", img: "img/fadi.webp" },
+                { name: "다포딜", type: "S_CHAR", img: "img/dafo.webp" },
+                { name: "구원", type: "S_CHAR", img: "img/guwon.webp" }
             ],
-            pickupWeapon: { name: "한정 아크", img: "https://via.placeholder.com/100/ccffcc?text=Ark" },
-            standardWeapons: [
-                { name: "통상 아크_A", img: "https://via.placeholder.com/100/eeeeee?text=Std_Ark" }
+            pickupWeapon: { name: "준비, 준비", type: "S_ARK", img: "img/ready.webp" },
+            standardWeapons: [ 
+                { name: "현실 도피처", type: "S_ARK", img: "img/real.webp" }, 
+                { name: "암흑 청춘의 망상", type: "S_ARK", img: "img/black.webp" },
+                { name: "착한 강아지의 여행", type: "S_ARK", img: "img/good.webp" },
+                { name: "동백꽃 모임", type: "S_ARK", img: "img/came.webp" },
+                { name: "염혼의 질주", type: "S_ARK", img: "img/flame.webp" },
             ],
-            aChars: [
-                { name: "A급 캐릭_1", img: "https://via.placeholder.com/100/ccccff?text=A1" },
-                { name: "A급 캐릭_2", img: "https://via.placeholder.com/100/ccccff?text=A2" }
+            aChars: [ 
+                { name: "스키아", type: "A_CHAR", img: "img/suki.webp" },
+                { name: "민트", type: "A_CHAR", img: "img/mint.webp" },
+                { name: "에드가", type: "A_CHAR", img: "img/ed.webp" },
+                { name: "하니엘", type: "A_CHAR", img: "img/hani.webp" },
+                { name: "아들러", type: "A_CHAR", img: "img/ad.webp" },
+                { name: "우마츠키", type: "A_CHAR", img: "img/uma.webp" },
             ],
-            skin: { name: "픽업캐 스킨", img: "https://via.placeholder.com/100/ffccff?text=Skin" },
-            rRank: { name: "B급 재화", img: "https://via.placeholder.com/100/444444?text=B", rank: 'R', class: 'r-rank' }
+            aWeapons: [ 
+                { name: "물망산", type: "A_ARK", img: "img/weapon1.webp" },
+                { name: "화려한 조명 속 광란의 파티", type: "A_ARK", img: "img/weapon2.webp" },
+                { name: "빛나는 나날", type: "A_ARK", img: "img/weapon3.webp" },
+                { name: "잊힌 자", type: "A_ARK", img: "img/weapon4.webp" },
+                { name: "오라오라", type: "A_ARK", img: "img/weapon5.webp" },
+                { name: "영감 배틀로얄", type: "A_ARK", img: "img/weapon6.webp" },
+                { name: "입에 쓴 약이 몸에 좋다", type: "A_ARK", img: "img/weapon7.webp" },
+                { name: "망할 인연", type: "A_ARK", img: "img/weapon8.webp" },
+                { name: "머리 조심", type: "A_ARK", img: "img/weapon9.webp" },
+                { name: "정화 개시", type: "A_ARK", img: "img/weapon10.webp" },
+                { name: "말하기 어려운 마음", type: "A_ARK", img: "img/weapon11.webp" },
+                { name: "발도", type: "A_ARK", img: "img/weapon12.webp" },
+                { name: "때는 온다", type: "A_ARK", img: "img/weapon13.webp" },
+                { name: "봄을 심는 바보", type: "A_ARK", img: "img/weapon14.webp" },
+                { name: "시간 도둑", type: "A_ARK", img: "img/weapon15.webp" },
+                { name: "뒤틀린 도시의 부름", type: "A_ARK", img: "img/weapon16.webp" },
+            ],
+            bWeapons: [ 
+                { name: "위험한 게임", type: "B_ARK", img: "img/bweapon1.webp" }, 
+                { name: "성공을 향한 첫 걸음", type: "B_ARK", img: "img/bweapon2.webp" }, 
+                { name: "미소 천사", type: "B_ARK", img: "img/bweapon3.webp" }, 
+                { name: "우리", type: "B_ARK", img: "img/bweapon4.webp" }, 
+                { name: "광란의 전자음악", type: "B_ARK", img: "img/bweapon5.webp" },
+            ],
+            skin: { name: "화려한 발차기", type: "SKIN", img: "img/nanariskin1.webp" },
+            glider: { name: "이인자의 이인자", type: "GLIDER", img: "img/glider1.webp" },
+            vehicle: { name: "M-1000리버리", type: "VEHICLE", img: "img/tigercar.webp" }
         };
 
-        // ==========================================
-        // [상태 변수]
-        // ==========================================
-        let currentBanner = 'pickup'; // pickup, standard, weapon
         let stats = {
-            pickupPity: 0,
-            standardPity: 0,
-            weaponPity: 0,
-            skinPity: 0,
-            totalS: 0
+            pickup: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0, outfitPity: 0, liveryPity: 0, gliderPity: 0, outfitPityUsed: false, liveryPityUsed: false, gliderPityUsed: false },
+            standard: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0 },
+            weapon: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0, sGuarPity: 0, pickupGuarPity: 0 }
         };
+        
+        let currentBanner = 'pickup'; let inventory = {}; let historyS = []; let historyA = [];
 
-        let historyS = [];
-        let historyA = [];
-
-        // ==========================================
-        // [배너 전환 로직]
-        // ==========================================
         function switchBanner(bannerType) {
             currentBanner = bannerType;
-            
-            // 탭 UI 변경
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-
-            // 텍스트 및 무기 단챠버튼 비활성화 처리
-            const bannerName = { pickup: '픽업 캐릭터', standard: '상시 캐릭터', weapon: '픽업 아크(무기)' };
-            document.getElementById('banner-name').innerText = bannerName[bannerType];
-            
-            if (bannerType === 'weapon') {
-                document.getElementById('btn-1').disabled = true;
-                document.getElementById('btn-1').innerText = "무기는 10연차만";
-            } else {
-                document.getElementById('btn-1').disabled = false;
-                document.getElementById('btn-1').innerText = "1회 뽑기";
-            }
-
+            document.getElementById('btn-1').style.display = bannerType === 'weapon' ? 'none' : 'block';
             updateDashboard();
         }
 
         function updateDashboard() {
-            let pityStr = "";
-            if (currentBanner === 'pickup') pityStr = `${stats.pickupPity} / 90`;
-            else if (currentBanner === 'standard') pityStr = `${stats.standardPity} / 90`;
-            else if (currentBanner === 'weapon') pityStr = `${stats.weaponPity} / 80`;
+            let s = stats[currentBanner];
+            let maxPity = currentBanner === 'weapon' ? 80 : 90;
+            let currentPity = currentBanner === 'weapon' ? s.pickupGuarPity : s.pity;
 
-            document.getElementById('pity-count').innerText = pityStr;
-            document.getElementById('total-s').innerText = stats.totalS;
+            document.getElementById('pity-count').innerText = `${currentPity} / ${maxPity}`;
+            document.getElementById('total-s').innerText = s.sCount;
+            document.getElementById('spent-currency').innerText = s.spent.toLocaleString();
+            document.getElementById('tal-item').innerText = s.tal;
+            document.getElementById('bang-item').innerText = s.bang;
         }
 
-        // ==========================================
-        // [가챠 로직 코어]
-        // ==========================================
-        function rng(chance) {
-            return (Math.random() * 100) <= chance;
+        function getRandomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function processDuplicate(item, bannerStats) {
+            inventory[item.name] = (inventory[item.name] || 0) + 1;
+            let count = inventory[item.name]; let msg = "";
+            if (item.type === 'S_CHAR') {
+                if (count > 1 && count <= 7) { bannerStats.tal += 40; msg = "파편+1, 기물+40"; }
+                else if (count > 7) { bannerStats.tal += 80; msg = "기물+80"; }
+            } else if (item.type === 'A_CHAR') {
+                if (count > 1 && count <= 7) { bannerStats.tal += 6; msg = "파편+1, 기물+6"; }
+                else if (count > 7) { bannerStats.tal += 12; msg = "기물+12"; }
+            } else if (item.type === 'VEHICLE' && count > 1) { bannerStats.tal += 16; msg = "기물+16"; }
+            else if (item.type === 'GLIDER' && count > 1) { bannerStats.tal += 4; msg = "기물+4"; }
+            else if (item.type === 'B_ARK') { bannerStats.bang += 20; }
+            return msg;
         }
 
-        function getRandomItem(arr) {
-            return arr[Math.floor(Math.random() * arr.length)];
-        }
-
-        function pullSingle(isExtraAPull = false) {
-            if (currentBanner === 'pickup') return pullCharPickup(isExtraAPull);
-            if (currentBanner === 'standard') return pullCharStandard(isExtraAPull);
-            if (currentBanner === 'weapon') return pullWeapon();
-        }
-
-        // 1. 캐릭터 픽업 로직 (픽뚫 없음, 스킨 있음)
-        function pullCharPickup(isExtraAPull) {
-            stats.pickupPity++;
-            stats.skinPity++;
+        function pullSingle(isExtra) {
+            let item; let roll = Math.random() * 100;
+            let isPickupBanner = currentBanner === 'pickup'; let s = stats[currentBanner];
             
-            let sRate = 1.0;
-            if (stats.pickupPity >= 70) sRate = 19.81; // 소프트천장
-            if (stats.pickupPity >= 90) sRate = 100;   // 하드천장
+            if (currentBanner !== 'weapon') {
+                if (!isExtra) { s.pity++; if (isPickupBanner) { s.outfitPity++; s.liveryPity++; s.gliderPity++; } }
 
-            // 스킨 체크 (0.2% 또는 200천장)
-            if (stats.skinPity >= 200 || rng(0.2)) {
-                stats.skinPity = 0; // 스킨 먹으면 스킨 천장만 초기화 (캐릭 천장은 유지)
-                return { ...DB.skin, rank: 'SKIN', class: 'skin' };
-            }
+                if (isPickupBanner && !isExtra) {
+                    let gotSkin = false;
+                    if (!s.outfitPityUsed && s.outfitPity >= 200) { s.outfitPityUsed = true; gotSkin = true; item = { ...DB.skin, rank: 'SKIN', class: 'skin', note: '200회 확정' }; }
+                    else if (!s.liveryPityUsed && s.liveryPity >= 120) { s.liveryPityUsed = true; gotSkin = true; item = { ...DB.vehicle, rank: 'VEHICLE', class: 'vehicle', note: '120회 확정' }; }
+                    else if (!s.gliderPityUsed && s.gliderPity >= 50) { s.gliderPityUsed = true; gotSkin = true; item = { ...DB.glider, rank: 'GLIDER', class: 'vehicle', note: '50회 확정' }; }
 
-            // S급 체크
-            if (rng(sRate)) {
-                stats.pickupPity = 0;
-                stats.totalS++;
-                return { ...DB.pickupChar, rank: 'S', class: 's-rank' };
-            }
-
-            // A급 체크 (10+1 강제 확정 또는 기본 10% 확률)
-            if (isExtraAPull || rng(10)) {
-                return { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' };
-            }
-
-            return DB.rRank;
-        }
-
-        // 2. 캐릭터 상시 로직 (스킨 없음)
-        function pullCharStandard(isExtraAPull) {
-            stats.standardPity++;
-            
-            let sRate = 1.0;
-            if (stats.standardPity >= 70) sRate = 19.81;
-            if (stats.standardPity >= 90) sRate = 100;
-
-            if (rng(sRate)) {
-                stats.standardPity = 0;
-                stats.totalS++;
-                return { ...getRandomItem(DB.standardChars), rank: 'S', class: 's-rank' };
-            }
-
-            if (isExtraAPull || rng(10)) {
-                return { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' };
-            }
-
-            return DB.rRank;
-        }
-
-        // 3. 무기 로직 (10연차 전용, 60뽑 25%, 80뽑 확정)
-        function pullWeapon() {
-            stats.weaponPity++;
-            
-            let isS = false;
-            let isPickup = false;
-
-            if (stats.weaponPity >= 80) {
-                // 80천장: 무조건 픽업 무기
-                isS = true;
-                isPickup = true;
-            } else if (stats.weaponPity === 60) {
-                // 60뽑: 무조건 S급 등장하되, 픽업 확률 25%
-                isS = true;
-                isPickup = rng(25);
-            } else {
-                // 기본 3%
-                if (rng(3)) {
-                    isS = true;
-                    // 자연빵 S급 등장 시 픽업 확률 지정 안되어있지만 보통 50%로 가정. (짤에 명시 안됨)
-                    isPickup = rng(50);
+                    if (!gotSkin) {
+                        if (Math.random()*100 < 0.33) item = { ...DB.skin, rank: 'SKIN', class: 'skin' };
+                        else if (Math.random()*100 < 0.33) item = { ...DB.vehicle, rank: 'VEHICLE', class: 'vehicle' };
+                        else if (Math.random()*100 < 1.71) item = { ...DB.glider, rank: 'GLIDER', class: 'vehicle' };
+                    }
+                    if(item) { item.dupeMsg = processDuplicate(item, s); return item; }
                 }
-            }
 
-            if (isS) {
-                stats.totalS++;
-                if (isPickup) {
-                    stats.weaponPity = 0; // 픽업 먹으면 찐천장 초기화
-                    return { ...DB.pickupWeapon, rank: 'S', class: 's-rank' };
+                if (s.pity >= 90) {
+                    s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : DB.standardChars[0]), rank: 'S', class: 's-rank', note: '포인트 교환' };
+                } else if (s.pity >= 70) {
+                    if (roll < 10) { s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : DB.standardChars[0]), rank: 'S', class: 's-rank', note: '동행 타일 확정' }; }
+                    else {
+                        if (Math.random()*100 < 3.0) { s.pity = 0; s.sCount++; s.tal += 2; item = { ...(isPickupBanner ? DB.pickupChar : DB.standardChars[0]), rank: 'S', class: 's-rank', note: '영웅 상자 당첨' }; }
+                        else { s.tal += 2; item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank', note: '영웅 상자 (기물+2)' }; }
+                    }
                 } else {
-                    return { ...getRandomItem(DB.standardWeapons), rank: 'S', class: 's-rank' };
+                    if (isExtra) {
+                        item = Math.random() < 0.5 ? { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' } : { ...getRandomItem(DB.aWeapons), rank: 'A', class: 'a-rank' };
+                    } else if (roll < 13.47) {
+                        item = { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' };
+                    } else {
+                        if (Math.random()*100 < 0.2) { s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : DB.standardChars[0]), rank: 'S', class: 's-rank', note: '견습 상자' }; }
+                        else item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank' };
+                    }
+                }
+            } else {
+                if (!isExtra) { s.pity++; s.sGuarPity++; s.pickupGuarPity++; }
+                let isS = false; let isPickup = false;
+                
+                if (s.pickupGuarPity >= 80) { isS = true; isPickup = true; }
+                else if (s.sGuarPity >= 60) { isS = true; isPickup = Math.random()*100 < 25; } 
+                else if (roll < 3.0) { isS = true; isPickup = Math.random()*100 < 25; } 
+                
+                if (isS) {
+                    s.sCount++; s.sGuarPity = 0;
+                    if (isPickup) s.pickupGuarPity = 0;
+                    item = { ...(isPickup ? DB.pickupWeapon : DB.standardWeapons[0]), rank: 'S', class: 's-rank' };
+                } else {
+                    if (isExtra || Math.random()*100 < 7.0) item = { ...getRandomItem(DB.aWeapons), rank: 'A', class: 'a-rank' };
+                    else item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank' };
                 }
             }
-
-            // 무기도 10연차 시 A급 확정이 있는지 불명확하지만 A급 확률 넣음
-            if (rng(10)) return { ...getRandomItem(DB.aChars), name: "A급 아크", rank: 'A', class: 'a-rank' };
-            
-            return DB.rRank;
+            item.dupeMsg = processDuplicate(item, s);
+            return item;
         }
 
-        // ==========================================
-        // [뽑기 실행 및 화면 렌더링]
-        // ==========================================
         function pull(times) {
             const resultsDiv = document.getElementById('current-results');
-            resultsDiv.innerHTML = ''; // 화면 초기화
+            resultsDiv.innerHTML = ''; stats[currentBanner].spent += (times * 160); 
+            let loopCount = (times === 10 && currentBanner !== 'weapon') ? 11 : times; 
             
-            let results = [];
-            
-            // 10연차면 '10+1' 로직으로 11번 돌림 (무기는 그냥 10번)
-            let loopCount = times;
-            if (times === 10 && currentBanner !== 'weapon') loopCount = 11;
-
             for (let i = 0; i < loopCount; i++) {
-                // 11번째 뽑기는 무조건 A급 이상 보장 (isExtraAPull = true)
-                let isExtra = (times === 10 && i === 10 && currentBanner !== 'weapon');
+                let isExtra = (times === 10 && i === 10 && currentBanner !== 'weapon'); 
                 let item = pullSingle(isExtra);
-                results.push(item);
-                
-                // 화면에 아이템 추가
                 const el = document.createElement('div');
                 el.className = `item ${item.class}`;
+                // 이미지 없을 때 깨지지 않게 임시 처리 추가
                 el.innerHTML = `
                     <div class="rank">${item.rank}</div>
-                    <img src="${item.img}" alt="${item.name}">
-                    <div style="font-size: 11px;">${item.name}</div>
-                `;
+                    <img src="${item.img}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MCIgaGVpZ2h0PSI3MCI+PHJlY3Qgd2lkdGg9IjcwIiBoZWlnaHQ9IjcwIiBmaWxsPSIjNDQ0Ii8+PC9zdmc+'" alt="${item.name}">
+                    <div class="name-tag">${item.name}</div>
+                    ${item.note ? `<div class="note">${item.note}</div>` : ''}
+                    ${item.dupeMsg ? `<div class="dupe-msg">${item.dupeMsg}</div>` : ''}`;
                 resultsDiv.appendChild(el);
-
-                // 히스토리 기록
-                if (item.rank === 'S' || item.rank === 'SKIN') {
-                    historyS.unshift(item); // 최신이 위로 오게
-                } else if (item.rank === 'A') {
-                    historyA.unshift(item);
-                }
+                
+                // 고유 식별을 위해 시간값 추가
+                item.id = Date.now() + Math.random();
+                
+                if (['S', 'SKIN', 'VEHICLE', 'GLIDER'].includes(item.rank)) historyS.unshift(item);
+                else if (item.rank === 'A') historyA.unshift(item);
             }
-
-            updateDashboard();
-            renderHistory();
+            updateDashboard(); renderHistory();
         }
 
+        // 필터 로직 추가된 렌더링 함수
         function renderHistory() {
-            const histS_Div = document.getElementById('history-s');
-            const histA_Div = document.getElementById('history-a');
-            
-            histS_Div.innerHTML = historyS.map(item => `
-                <div class="hist-item">
-                    <img src="${item.img}">
-                    <div>
-                        <div class="${item.rank === 'SKIN' ? 'hist-skin' : 'hist-s'}">[${item.rank}]</div>
-                        <div>${item.name}</div>
-                    </div>
-                </div>
-            `).join('');
+            const typeFilter = document.getElementById('type-filter').value;
+            const nameFilter = document.getElementById('name-filter').value.trim().toLowerCase();
 
-            histA_Div.innerHTML = historyA.map(item => `
-                <div class="hist-item">
-                    <img src="${item.img}">
-                    <div>
-                        <div class="hist-a">[A]</div>
-                        <div>${item.name}</div>
+            const filterLogic = (item) => {
+                // 이름 검색 체크
+                if (nameFilter && !item.name.toLowerCase().includes(nameFilter)) return false;
+
+                // 타입 분류 체크
+                if (typeFilter === 'ALL') return true;
+                
+                let iType = item.type || '';
+                // 원본 DB에 standardChars type 누락된 거 커버용
+                if (!iType && item.rank === 'S') iType = 'S_CHAR';
+
+                if (typeFilter === 'CHAR' && iType.includes('CHAR')) return true;
+                if (typeFilter === 'ARK' && iType.includes('ARK')) return true;
+                if (typeFilter === 'ETC' && ['SKIN', 'GLIDER', 'VEHICLE'].includes(item.rank)) return true;
+                
+                return false;
+            };
+
+            const filteredS = historyS.filter(filterLogic);
+            const filteredA = historyA.filter(filterLogic);
+
+            const mapHTML = (i) => {
+                let tagClass = i.rank === 'S' ? 'tag-s' : (['SKIN','VEHICLE','GLIDER'].includes(i.rank) ? 'tag-skin' : 'tag-a');
+                let typeClass = i.rank === 'S' ? 'type-s' : (['SKIN','VEHICLE','GLIDER'].includes(i.rank) ? 'type-skin' : 'type-a');
+                let displayRank = ['VEHICLE','GLIDER'].includes(i.rank) ? 'SKIN' : i.rank; // UI 통일용
+                
+                return `
+                <div class="hist-item ${typeClass}">
+                    <img src="${i.img}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjNDQ0Ii8+PC9zdmc+'">
+                    <div class="hist-info">
+                        <div class="hist-rank-tag ${tagClass}">${displayRank}</div>
+                        <div class="hist-name">${i.name}</div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            };
+
+            document.getElementById('history-s').innerHTML = filteredS.map(mapHTML).join('') || '<div style="color:#666; text-align:center; padding: 20px;">기록이 없습니다.</div>';
+            document.getElementById('history-a').innerHTML = filteredA.map(mapHTML).join('') || '<div style="color:#666; text-align:center; padding: 20px;">기록이 없습니다.</div>';
+        }
+
+        function resetSpecific(type) {
+            if (type === 'history' || type === 'all') { historyS = []; historyA = []; renderHistory(); document.getElementById('current-results').innerHTML = ''; }
+            if (type === 'stack' || type === 'all') {
+                if(type === 'all') {
+                    stats = { pickup: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0, outfitPity: 0, liveryPity: 0, gliderPity: 0, outfitPityUsed: false, liveryPityUsed: false, gliderPityUsed: false }, standard: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0 }, weapon: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0, sGuarPity: 0, pickupGuarPity: 0 } };
+                    inventory = {}; 
+                } else {
+                    let s = stats[currentBanner];
+                    s.pity = 0; s.sGuarPity = 0; s.pickupGuarPity = 0; s.outfitPity = 0; s.liveryPity = 0; s.gliderPity = 0; s.outfitPityUsed = false; s.liveryPityUsed = false; s.gliderPityUsed = false;
+                }
+            }
+            updateDashboard();
         }
     </script>
 </body>
