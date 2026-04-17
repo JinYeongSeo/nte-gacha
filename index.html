@@ -14,9 +14,10 @@
     <title>이환NTE 가챠 시뮬레이터</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
     <style>
-        /* 다크모드 (기본값) 변수 */
+        /* 다크모드 (기본값) 변수 - 그라데이션 적용 */
         :root { 
-            --bg: #0d0d12; 
+            --bg-gradient: linear-gradient(135deg, #0d0d15 0%, #161625 100%);
+            --panel-gradient: linear-gradient(145deg, #1f1f2e 0%, #171722 100%);
             --panel: #1a1a24; 
             --text: #ececec; 
             --text-muted: #aaa;
@@ -28,25 +29,26 @@
             --border-radius: 12px;
             --accent: #e94560;
             --box-border: rgba(255,255,255,0.05);
-            --box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            --box-shadow: 0 8px 24px rgba(0,0,0,0.3);
             --item-bg: linear-gradient(180deg, #2a2a36 0%, #1e1e28 100%);
             --hist-bg: #252530;
             --input-bg: #2a2a36;
         }
 
-        /* 라이트모드 변수 */
+        /* 라이트모드 변수 - 그라데이션 적용 */
         :root[data-theme="light"] {
-            --bg: #f3f4f6; 
+            --bg-gradient: linear-gradient(135deg, #f3f4f6 0%, #e2e8f0 100%);
+            --panel-gradient: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
             --panel: #ffffff; 
             --text: #1f2937; 
             --text-muted: #6b7280;
-            --s-color: #d97706; /* 라이트모드 가독성용 짙은 노랑 */
+            --s-color: #d97706; 
             --a-color: #7c3aed; 
             --r-color: #6b7280; 
             --skin-color: #db2777; 
             --veh-color: #0284c7;
             --box-border: rgba(0,0,0,0.1);
-            --box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            --box-shadow: 0 4px 16px rgba(0,0,0,0.06);
             --item-bg: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
             --hist-bg: #f9fafb;
             --input-bg: #ffffff;
@@ -54,15 +56,16 @@
         
         body { 
             font-family: 'Pretendard', sans-serif; 
-            background-color: var(--bg); 
+            background: var(--bg-gradient);
+            background-attachment: fixed;
             color: var(--text); 
             margin: 0; 
             padding: 30px 20px; 
             text-align: center; 
-            transition: background-color 0.3s, color 0.3s;
+            transition: background 0.3s, color 0.3s;
         }
         
-        /* 헤더 영역 (제목 + 테마 버튼) */
+        /* 헤더 영역 */
         .header-container {
             display: flex;
             justify-content: center;
@@ -77,7 +80,7 @@
         h1 { color: var(--text); margin: 0; font-weight: 800; letter-spacing: -0.5px; }
         
         .theme-toggle {
-            background: var(--panel);
+            background: var(--panel-gradient);
             color: var(--text);
             border: 1px solid var(--box-border);
             padding: 8px 16px;
@@ -113,11 +116,11 @@
             border-color: var(--accent); 
         }
         
-        /* 대시보드 (박스 크기 슬림화) */
+        /* 대시보드 */
         .dashboard { max-width: 1000px; margin: 0 auto 30px auto; display: flex; flex-direction: column; gap: 12px; }
         .dash-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
         .dash-box { 
-            background: var(--panel); 
+            background: var(--panel-gradient); 
             padding: 14px 15px;
             border-radius: var(--border-radius); 
             flex: 1 1 180px; 
@@ -129,10 +132,10 @@
             min-width: 180px;
             box-shadow: var(--box-shadow);
             border: 1px solid var(--box-border);
-            transition: background-color 0.3s, border-color 0.3s;
+            transition: background 0.3s, border-color 0.3s;
         }
         .box-header { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--text-muted); width: 100%; }
-        .icon-img { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; background: transparent; box-shadow: var(--box-shadow); }
+        .icon-img { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; background: transparent; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .dash-box span { color: var(--text); font-size: 24px; font-weight: 800; margin-top: 6px; letter-spacing: 0.5px; }
 
         /* 컨트롤 영역 */
@@ -203,7 +206,7 @@
         .item.s-rank .rank { background: var(--s-color); color: #000; }
         .item.a-rank { border: 2px solid var(--a-color); }
         .item.a-rank .rank { background: var(--a-color); color: #fff; }
-        .item.skin { border: 2px solid var(--skin-color); }
+        .item.skin { border: 2px solid var(--skin-color); box-shadow: 0 0 20px rgba(255, 102, 178, 0.15); }
         .item.skin .rank { background: var(--skin-color); color: #fff; }
         .item.vehicle { border: 2px solid var(--veh-color); }
         .item.vehicle .rank { background: var(--veh-color); color: #000; }
@@ -216,7 +219,7 @@
         .filter-bar { 
             display: flex; 
             gap: 15px; 
-            background: var(--panel); 
+            background: var(--panel-gradient); 
             padding: 15px 25px; 
             border-radius: var(--border-radius); 
             align-items: center; 
@@ -241,7 +244,7 @@
         .filter-title { font-weight: 700; color: var(--text-muted); font-size: 15px; }
 
         .history-container { display: flex; justify-content: space-between; gap: 20px; }
-        .history-box { flex: 1; background: var(--panel); padding: 25px; border-radius: var(--border-radius); max-height: 600px; overflow-y: auto; border: 1px solid var(--box-border); box-shadow: var(--box-shadow); }
+        .history-box { flex: 1; background: var(--panel-gradient); padding: 25px; border-radius: var(--border-radius); max-height: 600px; overflow-y: auto; border: 1px solid var(--box-border); box-shadow: var(--box-shadow); }
         
         .history-box::-webkit-scrollbar { width: 8px; }
         .history-box::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 4px; }
@@ -275,7 +278,7 @@
         .tag-skin { background: rgba(255,102,178,0.15); color: var(--skin-color); }
         .hist-name { font-weight: 600; color: var(--text); }
 
-        /* 모바일 최적화 (강제 한 줄 정렬 수정) */
+        /* 모바일 최적화 (가챠 결과 리사이징) */
         @media (max-width: 768px) {
             body { padding: 15px 10px; }
             
@@ -286,7 +289,6 @@
             .tabs { flex-wrap: wrap; gap: 8px; }
             .tab-btn { padding: 10px 16px; font-size: 14px; flex: 1 1 30%; text-align: center; }
             
-            /* 대시보드 3개가 무조건 한 줄에 나오도록 강제 (nowrap) */
             .dash-row { gap: 8px; flex-wrap: nowrap; }
             .dash-box { padding: 10px 5px; min-width: 0; flex: 1 1 auto; border-radius: 10px; }
             .dash-box span { font-size: 18px; margin-top: 4px; }
@@ -298,26 +300,30 @@
             .gacha-btn { padding: 14px 20px; font-size: 16px; flex: 1; border-radius: 8px; }
             .btn-reset { padding: 10px 12px; flex: 1; font-size: 13px; }
 
-            #current-results { gap: 8px; margin-bottom: 30px; min-height: auto; }
-            .item { width: 85px; height: 125px; padding: 6px; border-radius: 8px; }
-            .item img { width: 45px; height: 45px; margin-bottom: 6px; }
-            .item .rank { font-size: 11px; padding: 2px 4px; top: 4px; left: 4px; border-radius: 4px; }
-            .item .name-tag { font-size: 11px; margin-bottom: 2px; }
-            .item .note, .item .dupe-msg { font-size: 9px; margin-top: 2px; }
+            /* 가챠 결과 한눈에 들어오게 폭풍 다이어트 */
+            #current-results { gap: 6px; margin-bottom: 25px; min-height: auto; }
+            .item { width: 66px; height: 105px; padding: 4px; border-radius: 6px; }
+            .item img { width: 36px; height: 36px; margin-bottom: 4px; }
+            .item .rank { font-size: 9px; padding: 2px 4px; top: 3px; left: 3px; border-radius: 3px; }
+            .item .name-tag { font-size: 10px; margin-bottom: 2px; letter-spacing: -0.5px; }
+            .item .note, .item .dupe-msg { font-size: 8px; margin-top: 1px; }
 
             .filter-bar { flex-direction: column; align-items: stretch; padding: 12px; gap: 12px; }
             .filter-group { flex-direction: column; align-items: stretch; gap: 10px; }
             
             .history-container { flex-direction: column; gap: 15px; }
             .history-box { max-height: 400px; padding: 15px; }
-            .hist-item { width: 100%; padding: 10px; }
+            .hist-item { width: 100%; padding: 10px; box-sizing: border-box; }
         }
 
-        @media (max-width: 480px) {
+        /* 아이폰 미니나 SE급 좁은 화면 대응 */
+        @media (max-width: 400px) {
             .dash-box span { font-size: 16px; }
-            .item { width: 75px; height: 115px; }
-            .item img { width: 40px; height: 40px; }
-            .item .name-tag { font-size: 10px; letter-spacing: -0.5px; }
+            #current-results { gap: 4px; }
+            .item { width: 62px; height: 95px; padding: 3px; }
+            .item img { width: 32px; height: 32px; margin-bottom: 2px; }
+            .item .name-tag { font-size: 9px; }
+            .item .note, .item .dupe-msg { font-size: 7.5px; }
         }
     </style>
 </head>
