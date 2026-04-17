@@ -209,6 +209,57 @@
         .tag-a { background: rgba(179,136,255,0.15); color: var(--a-color); }
         .tag-skin { background: rgba(255,102,178,0.15); color: var(--skin-color); }
         .hist-name { font-weight: 600; color: #eee; }
+
+        /* =========================================
+           모바일 최적화 (반응형 웹) 
+        ========================================= */
+        @media (max-width: 768px) {
+            body { padding: 15px 10px; }
+            h1 { font-size: 24px; margin-bottom: 20px; }
+            
+            .tabs { flex-wrap: wrap; gap: 8px; }
+            .tab-btn { padding: 10px 16px; font-size: 14px; flex: 1 1 30%; text-align: center; }
+            
+            .dash-row { gap: 10px; }
+            .dash-box { padding: 15px 10px; min-width: 140px; flex: 1 1 45%; border-radius: 10px; }
+            .dash-box span { font-size: 22px; margin-top: 8px; }
+            .box-header { font-size: 13px; }
+            .icon-img { width: 20px; height: 20px; }
+            
+            .action-area { flex-direction: column; gap: 15px; margin-bottom: 25px; }
+            .controls { width: 100%; justify-content: center; gap: 10px; }
+            .gacha-btn { padding: 14px 20px; font-size: 16px; flex: 1; border-radius: 8px; }
+            
+            .reset-group { width: 100%; justify-content: center; gap: 8px; }
+            .btn-reset { padding: 10px 12px; flex: 1; font-size: 13px; }
+
+            /* 가챠 결과물 카드 최적화 */
+            #current-results { gap: 8px; margin-bottom: 30px; min-height: auto; }
+            .item { width: 85px; height: 125px; padding: 6px; border-radius: 8px; }
+            .item img { width: 45px; height: 45px; margin-bottom: 6px; }
+            .item .rank { font-size: 11px; padding: 2px 4px; top: 4px; left: 4px; border-radius: 4px; }
+            .item .name-tag { font-size: 11px; margin-bottom: 2px; line-height: 1.1; }
+            .item .note, .item .dupe-msg { font-size: 9px; margin-top: 2px; }
+
+            /* 필터바 및 하단 기록창 최적화 */
+            .filter-bar { flex-direction: column; align-items: stretch; padding: 12px; gap: 12px; border-radius: 10px; }
+            .filter-group { flex-direction: column; align-items: stretch; gap: 10px; }
+            .filter-bar select, .filter-bar input { width: 100%; box-sizing: border-box; }
+            
+            .history-container { flex-direction: column; gap: 15px; }
+            .history-box { max-height: 400px; padding: 15px; border-radius: 10px; }
+            .hist-item { width: 100%; padding: 10px; gap: 12px; }
+            .hist-item img { width: 40px; height: 40px; }
+            .hist-name { font-size: 13px; }
+        }
+
+        @media (max-width: 480px) {
+            .dash-box { min-width: 100px; }
+            .dash-box span { font-size: 18px; }
+            .item { width: 75px; height: 115px; }
+            .item img { width: 40px; height: 40px; }
+            .item .name-tag { font-size: 10px; letter-spacing: -0.5px; }
+        }
     </style>
 </head>
 <body>
@@ -434,8 +485,8 @@
                 let isS = false; let isPickup = false;
                 
                 if (s.pickupGuarPity >= 80) { isS = true; isPickup = true; }
-                else if (s.sGuarPity >= 60) { isS = true; isPickup = Math.random()*100 < 25; } 
-                else if (roll < 3.0) { isS = true; isPickup = Math.random()*100 < 25; } 
+                else if (s.sGuarPity >= 60) { isS = true; isPickup = Math.random()*100 < 75; } 
+                else if (roll < 3.0) { isS = true; isPickup = Math.random()*100 < 75; } 
                 
                 if (isS) {
                     s.sCount++; s.sGuarPity = 0;
@@ -460,7 +511,6 @@
                 let item = pullSingle(isExtra);
                 const el = document.createElement('div');
                 el.className = `item ${item.class}`;
-                // 이미지 없을 때 깨지지 않게 임시 처리 추가
                 el.innerHTML = `
                     <div class="rank">${item.rank}</div>
                     <img src="${item.img}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MCIgaGVpZ2h0PSI3MCI+PHJlY3Qgd2lkdGg9IjcwIiBoZWlnaHQ9IjcwIiBmaWxsPSIjNDQ0Ii8+PC9zdmc+'" alt="${item.name}">
@@ -469,7 +519,6 @@
                     ${item.dupeMsg ? `<div class="dupe-msg">${item.dupeMsg}</div>` : ''}`;
                 resultsDiv.appendChild(el);
                 
-                // 고유 식별을 위해 시간값 추가
                 item.id = Date.now() + Math.random();
                 
                 if (['S', 'SKIN', 'VEHICLE', 'GLIDER'].includes(item.rank)) historyS.unshift(item);
@@ -478,20 +527,15 @@
             updateDashboard(); renderHistory();
         }
 
-        // 필터 로직 추가된 렌더링 함수
         function renderHistory() {
             const typeFilter = document.getElementById('type-filter').value;
             const nameFilter = document.getElementById('name-filter').value.trim().toLowerCase();
 
             const filterLogic = (item) => {
-                // 이름 검색 체크
                 if (nameFilter && !item.name.toLowerCase().includes(nameFilter)) return false;
-
-                // 타입 분류 체크
                 if (typeFilter === 'ALL') return true;
                 
                 let iType = item.type || '';
-                // 원본 DB에 standardChars type 누락된 거 커버용
                 if (!iType && item.rank === 'S') iType = 'S_CHAR';
 
                 if (typeFilter === 'CHAR' && iType.includes('CHAR')) return true;
@@ -507,7 +551,7 @@
             const mapHTML = (i) => {
                 let tagClass = i.rank === 'S' ? 'tag-s' : (['SKIN','VEHICLE','GLIDER'].includes(i.rank) ? 'tag-skin' : 'tag-a');
                 let typeClass = i.rank === 'S' ? 'type-s' : (['SKIN','VEHICLE','GLIDER'].includes(i.rank) ? 'type-skin' : 'type-a');
-                let displayRank = ['VEHICLE','GLIDER'].includes(i.rank) ? 'SKIN' : i.rank; // UI 통일용
+                let displayRank = ['VEHICLE','GLIDER'].includes(i.rank) ? 'SKIN' : i.rank; 
                 
                 return `
                 <div class="hist-item ${typeClass}">
