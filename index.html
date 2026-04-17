@@ -56,13 +56,22 @@
         
         body { 
             font-family: 'Pretendard', sans-serif; 
-            background: var(--bg-gradient);
-            background-attachment: fixed;
+            /* 배경 그라데이션 레이어 + ill.webp 중첩 (희미하게 보이기 위해 rgba 0.85 적용) */
+            background: linear-gradient(rgba(13, 13, 21, 0.85), rgba(13, 13, 21, 0.85)), 
+                        url('ill.webp') no-repeat center center fixed;
+            background-size: cover;
             color: var(--text); 
             margin: 0; 
             padding: 30px 20px; 
             text-align: center; 
             transition: background 0.3s, color 0.3s;
+        }
+
+        /* 라이트 모드 전환 시 일러스트 배경 처리 */
+        :root[data-theme="light"] body {
+            background: linear-gradient(rgba(243, 244, 246, 0.9), rgba(243, 244, 246, 0.9)), 
+                        url('ill.webp') no-repeat center center fixed;
+            background-size: cover;
         }
         
         /* 헤더 영역 */
