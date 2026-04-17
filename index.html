@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="icon" href="img/favicon.png" type="image/png">
+
+    <meta property="og:title" content="이환NTE 가챠 시뮬레이터">
+    <meta property="og:description" content="by 오고곡">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://ntegacha.vercel.app/img/thumbnail.png">
+
     <title>이환NTE 가챠 시뮬레이터</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
     <style>
@@ -110,7 +118,7 @@
         .dash-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
         .dash-box { 
             background: var(--panel); 
-            padding: 14px 15px; /* 높이 대폭 감소 */
+            padding: 14px 15px;
             border-radius: var(--border-radius); 
             flex: 1 1 180px; 
             display: flex; 
@@ -124,7 +132,6 @@
             transition: background-color 0.3s, border-color 0.3s;
         }
         .box-header { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--text-muted); width: 100%; }
-        /* 아이콘 사이즈 키움 (24px -> 32px) */
         .icon-img { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; background: transparent; box-shadow: var(--box-shadow); }
         .dash-box span { color: var(--text); font-size: 24px; font-weight: 800; margin-top: 6px; letter-spacing: 0.5px; }
 
@@ -280,7 +287,6 @@
             .tab-btn { padding: 10px 16px; font-size: 14px; flex: 1 1 30%; text-align: center; }
             
             .dash-row { gap: 10px; }
-            /* 모바일 박스 크기 및 폰트 조절 */
             .dash-box { padding: 10px; min-width: 130px; flex: 1 1 45%; border-radius: 10px; }
             .dash-box span { font-size: 20px; margin-top: 4px; }
             .box-header { font-size: 12px; }
@@ -396,7 +402,6 @@
     </div>
 
     <script>
-        // 테마 모드 저장 및 토글 로직
         function toggleTheme() {
             const root = document.documentElement;
             const btn = document.getElementById('theme-btn');
@@ -411,7 +416,6 @@
             }
         }
 
-        // 페이지 로드 시 테마 복구
         window.onload = () => {
             if (localStorage.getItem('theme') === 'light') {
                 document.documentElement.setAttribute('data-theme', 'light');
@@ -542,11 +546,11 @@
                 }
 
                 if (s.pity >= 90) {
-                    s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : DB.standardChars[0]), rank: 'S', class: 's-rank', note: '포인트 교환' };
+                    s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : getRandomItem(DB.standardChars)), rank: 'S', class: 's-rank', note: '포인트 교환' };
                 } else if (s.pity >= 70) {
-                    if (roll < 10) { s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : DB.standardChars[0]), rank: 'S', class: 's-rank', note: '동행 타일 확정' }; }
+                    if (roll < 10) { s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : getRandomItem(DB.standardChars)), rank: 'S', class: 's-rank', note: '동행 타일 확정' }; }
                     else {
-                        if (Math.random()*100 < 3.0) { s.pity = 0; s.sCount++; s.tal += 2; item = { ...(isPickupBanner ? DB.pickupChar : DB.standardChars[0]), rank: 'S', class: 's-rank', note: '영웅 상자 당첨' }; }
+                        if (Math.random()*100 < 3.0) { s.pity = 0; s.sCount++; s.tal += 2; item = { ...(isPickupBanner ? DB.pickupChar : getRandomItem(DB.standardChars)), rank: 'S', class: 's-rank', note: '영웅 상자 당첨' }; }
                         else { s.tal += 2; item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank', note: '영웅 상자 (기물+2)' }; }
                     }
                 } else {
@@ -555,7 +559,7 @@
                     } else if (roll < 13.47) {
                         item = { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' };
                     } else {
-                        if (Math.random()*100 < 0.2) { s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : DB.standardChars[0]), rank: 'S', class: 's-rank', note: '견습 상자' }; }
+                        if (Math.random()*100 < 0.2) { s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : getRandomItem(DB.standardChars)), rank: 'S', class: 's-rank', note: '견습 상자' }; }
                         else item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank' };
                     }
                 }
@@ -570,7 +574,7 @@
                 if (isS) {
                     s.sCount++; s.sGuarPity = 0;
                     if (isPickup) s.pickupGuarPity = 0;
-                    item = { ...(isPickup ? DB.pickupWeapon : DB.standardWeapons[0]), rank: 'S', class: 's-rank' };
+                    item = { ...(isPickup ? DB.pickupWeapon : getRandomItem(DB.standardWeapons)), rank: 'S', class: 's-rank' };
                 } else {
                     if (isExtra || Math.random()*100 < 7.0) item = { ...getRandomItem(DB.aWeapons), rank: 'A', class: 'a-rank' };
                     else item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank' };
