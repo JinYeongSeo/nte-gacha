@@ -360,7 +360,14 @@
 
         /* 히스토리 모달 스타일 */
         .history-modal-content { width: 90%; max-width: 1200px; max-height: 85vh; display: flex; flex-direction: column; }
-        .history-section { display: flex; flex-direction: column; gap: 20px; text-align: left; flex-grow: 1; overflow: hidden; }
+        .history-section { display: flex; flex-direction: column; gap: 15px; text-align: left; flex-grow: 1; overflow: hidden; }
+        
+        /* 획득 기록 누적 횟수 보드 */
+        .pull-count-board { display: flex; gap: 15px; margin-bottom: 5px; }
+        .pull-count-box { flex: 1; background: #161620; padding: 15px; border-radius: 8px; border: 1px solid #2a2a35; text-align: center; }
+        .pull-count-title { color: #aaa; font-size: 14px; margin-bottom: 5px; font-weight: 700; word-break: keep-all;}
+        .pull-count-val { font-size: 22px; font-weight: 900; }
+
         .filter-bar { display: flex; gap: 15px; background: #161620; padding: 15px 25px; border-radius: 8px; align-items: center; justify-content: space-between; border: 1px solid #2a2a35; }
         .filter-group { display: flex; gap: 15px; align-items: center; }
         .filter-bar select, .filter-bar input { background: #0d0d15; color: #fff; border: 1px solid #333; padding: 10px 15px; border-radius: 6px; font-size: 14px; outline: none; }
@@ -435,6 +442,13 @@
             .modal-box { width: 92%; padding: 20px; box-sizing: border-box; }
             .recharge-options { flex-direction: column; align-items: center; }
             .recharge-item { width: 100%; box-sizing: border-box; }
+            
+            /* 누적 보드 반응형 */
+            .pull-count-board { gap: 5px; }
+            .pull-count-box { padding: 10px 5px; }
+            .pull-count-title { font-size: 11px; white-space: nowrap; letter-spacing: -0.5px; }
+            .pull-count-val { font-size: 16px; }
+
             .history-container { flex-direction: column; }
             .history-box { max-height: 250px; padding: 15px; }
             .filter-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 15px; }
@@ -473,7 +487,9 @@
             /* 모달창 반응형 */
             .modal-box { padding: 15px; }
             .history-modal-content { height: 90vh; }
-            .history-box { max-height: 300px; }
+            .pull-count-box { padding: 10px; }
+            .pull-count-val { font-size: 18px; }
+            .history-box { max-height: 200px; }
         }
     </style>
 </head>
@@ -586,8 +602,24 @@
         <div class="modal-box history-modal-content" onclick="event.stopPropagation()">
             <div class="modal-close-btn" onclick="closeHistory()">✖</div>
             <div class="history-section">
+                
+                <div class="pull-count-board">
+                    <div class="pull-count-box">
+                        <div class="pull-count-title">초대 가주 넘버원 누적</div>
+                        <div class="pull-count-val" style="color: var(--s-color);"><span id="hist-total-pickup">0</span>회</div>
+                    </div>
+                    <div class="pull-count-box">
+                        <div class="pull-count-title">기묘한 만남 누적</div>
+                        <div class="pull-count-val" style="color: #0088ff;"><span id="hist-total-standard">0</span>회</div>
+                    </div>
+                    <div class="pull-count-box">
+                        <div class="pull-count-title">아크 리서치 누적</div>
+                        <div class="pull-count-val" style="color: #4ade80;"><span id="hist-total-weapon">0</span>회</div>
+                    </div>
+                </div>
+
                 <div class="filter-bar">
-                    <span class="filter-title">획득 기록 확인</span>
+                    <span class="filter-title">상세 획득 기록</span>
                     <div class="filter-group">
                         <select id="type-filter" onchange="renderHistory()">
                             <option value="ALL">전체 보기</option>
@@ -673,9 +705,9 @@
 
         let globalCurrency = { ringstone: 0, tal: 0, bang: 0 };
         let stats = {
-            pickup: { pity: 0, sCount: 0, outfitPity: 0, liveryPity: 0, gliderPity: 0, outfitPityUsed: false, liveryPityUsed: false, gliderPityUsed: false },
-            standard: { pity: 0, sCount: 0 },
-            weapon: { pity: 0, sCount: 0, sGuarPity: 0, pickupGuarPity: 0 }
+            pickup: { totalPulls: 0, pity: 0, sCount: 0, outfitPity: 0, liveryPity: 0, gliderPity: 0, outfitPityUsed: false, liveryPityUsed: false, gliderPityUsed: false },
+            standard: { totalPulls: 0, pity: 0, sCount: 0 },
+            weapon: { totalPulls: 0, pity: 0, sCount: 0, sGuarPity: 0, pickupGuarPity: 0 }
         };
         
         let currentBanner = 'pickup'; let inventory = {}; let historyS = []; let historyA = [];
@@ -758,6 +790,9 @@
         }
 
         function pullSingle(isExtra) {
+            // 배너 누적 뽑기 횟수 증가
+            stats[currentBanner].totalPulls++;
+
             let item; let roll = Math.random() * 100;
             let isPickupBanner = currentBanner === 'pickup'; let s = stats[currentBanner];
             
@@ -880,6 +915,11 @@
             const typeFilter = document.getElementById('type-filter').value;
             const nameFilter = document.getElementById('name-filter').value.trim().toLowerCase();
 
+            // 상단 누적 횟수 업데이트
+            document.getElementById('hist-total-pickup').innerText = stats.pickup.totalPulls;
+            document.getElementById('hist-total-standard').innerText = stats.standard.totalPulls;
+            document.getElementById('hist-total-weapon').innerText = stats.weapon.totalPulls;
+
             const filterLogic = (item) => {
                 if (nameFilter && !item.name.toLowerCase().includes(nameFilter)) return false;
                 if (typeFilter === 'ALL') return true;
@@ -919,13 +959,18 @@
         function resetSpecific(type) {
             if (type === 'history' || type === 'all') { 
                 historyS = []; historyA = []; 
+                if (type === 'history') {
+                    stats.pickup.totalPulls = 0;
+                    stats.standard.totalPulls = 0;
+                    stats.weapon.totalPulls = 0;
+                }
                 renderHistory(); 
                 document.getElementById('results-container').innerHTML = ''; 
                 document.getElementById('current-results-overlay').style.display = 'none'; 
             }
             if (type === 'stack' || type === 'all') {
                 if(type === 'all') {
-                    stats = { pickup: { pity: 0, sCount: 0, outfitPity: 0, liveryPity: 0, gliderPity: 0, outfitPityUsed: false, liveryPityUsed: false, gliderPityUsed: false }, standard: { pity: 0, sCount: 0 }, weapon: { pity: 0, sCount: 0, sGuarPity: 0, pickupGuarPity: 0 } };
+                    stats = { pickup: { totalPulls: 0, pity: 0, sCount: 0, outfitPity: 0, liveryPity: 0, gliderPity: 0, outfitPityUsed: false, liveryPityUsed: false, gliderPityUsed: false }, standard: { totalPulls: 0, pity: 0, sCount: 0 }, weapon: { totalPulls: 0, pity: 0, sCount: 0, sGuarPity: 0, pickupGuarPity: 0 } };
                     inventory = {}; 
                     globalCurrency = { ringstone: 0, tal: 0, bang: 0 };
                 } else {
