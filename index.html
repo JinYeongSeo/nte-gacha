@@ -2,442 +2,526 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1280">
     
     <link rel="icon" href="img/favicon.png" type="image/png">
 
     <meta property="og:title" content="이환NTE 가챠 시뮬레이터">
     <meta property="og:description" content="클라 데이터 기반 보드판 & 무기 가챠 시뮬레이터">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://너의버셀주소.vercel.app/img/thumbnail.png">
+    <meta property="og:image" content="https://ntegacha.vercel.app/img/thumbnail.png">
 
     <title>이환NTE 가챠 시뮬레이터</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
     <style>
-        /* 다크모드 (기본값) 변수 - 그라데이션 적용 */
         :root { 
-            --bg-gradient: linear-gradient(135deg, #0d0d15 0%, #161625 100%);
-            --panel-gradient: linear-gradient(145deg, #1f1f2e 0%, #171722 100%);
-            --panel: #1a1a24; 
-            --text: #ececec; 
-            --text-muted: #aaa;
             --s-color: #ffcc00; 
             --a-color: #b388ff; 
             --r-color: #78788a; 
-            --skin-color: #ff66b2; 
+            --skin-color: #ff007f; 
             --veh-color: #00e5ff;
-            --border-radius: 12px;
-            --accent: #e94560;
-            --box-border: rgba(255,255,255,0.05);
-            --box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            --item-bg: linear-gradient(180deg, #2a2a36 0%, #1e1e28 100%);
-            --hist-bg: #252530;
-            --input-bg: #2a2a36;
+            --accent: #ff0055;
+            --glass-bg: rgba(20, 20, 25, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.15);
         }
 
-        /* 라이트모드 변수 - 그라데이션 적용 */
-        :root[data-theme="light"] {
-            --bg-gradient: linear-gradient(135deg, #f3f4f6 0%, #e2e8f0 100%);
-            --panel-gradient: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-            --panel: #ffffff; 
-            --text: #1f2937; 
-            --text-muted: #6b7280;
-            --s-color: #d97706; 
-            --a-color: #7c3aed; 
-            --r-color: #6b7280; 
-            --skin-color: #db2777; 
-            --veh-color: #0284c7;
-            --box-border: rgba(0,0,0,0.1);
-            --box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-            --item-bg: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
-            --hist-bg: #f9fafb;
-            --input-bg: #ffffff;
-        }
-        
         body { 
             font-family: 'Pretendard', sans-serif; 
-            /* 배경 그라데이션 레이어 + ill.webp 중첩 (희미하게 보이기 위해 rgba 0.85 적용) */
-            background: linear-gradient(rgba(13, 13, 21, 0.85), rgba(13, 13, 21, 0.85)), 
-                        url('ill.webp') no-repeat center center fixed;
-            background-size: cover;
-            color: var(--text); 
+            background-color: #000;
+            color: #fff; 
             margin: 0; 
-            padding: 30px 20px; 
-            text-align: center; 
-            transition: background 0.3s, color 0.3s;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) #111;
         }
 
-        /* 라이트 모드 전환 시 일러스트 배경 처리 */
-        :root[data-theme="light"] body {
-            background: linear-gradient(rgba(243, 244, 246, 0.9), rgba(243, 244, 246, 0.9)), 
-                        url('ill.webp') no-repeat center center fixed;
+        body::-webkit-scrollbar { width: 8px; }
+        body::-webkit-scrollbar-track { background: #111; }
+        body::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+
+        /* 배경 레이어 */
+        .bg-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            background: linear-gradient(135deg, rgba(10, 10, 15, 0.75) 0%, rgba(5, 5, 10, 0.9) 100%), 
+                        url('ill.webp') no-repeat center center;
             background-size: cover;
+            filter: blur(4px); 
+            transform: scale(1.05);
         }
-        
-        /* 헤더 영역 */
-        .header-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 25px;
+
+        .ingame-ui-container {
             position: relative;
-            max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
+            width: 100vw;
+            min-height: 100vh;
+            pointer-events: none; 
         }
-        h1 { color: var(--text); margin: 0; font-weight: 800; letter-spacing: -0.5px; }
         
-        .theme-toggle {
-            background: var(--panel-gradient);
-            color: var(--text);
-            border: 1px solid var(--box-border);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 14px;
-            font-family: 'Pretendard', sans-serif;
-            box-shadow: var(--box-shadow);
-            transition: 0.2s;
+        .ingame-ui-container > * { pointer-events: auto; }
+
+        /* 좌측 상단 컨트롤 (히스토리) */
+        .top-left-controls {
             position: absolute;
-            right: 0;
+            top: 20px; left: 30px;
+            display: flex; gap: 15px; z-index: 10;
         }
-        .theme-toggle:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
-        /* 탭 UI */
-        .tabs { display: flex; justify-content: center; gap: 12px; margin-bottom: 25px; }
-        .tab-btn { 
-            background: var(--input-bg); 
-            color: var(--text-muted); 
-            border: 2px solid var(--box-border); 
-            padding: 12px 28px; 
-            font-size: 16px; 
-            cursor: pointer; 
-            border-radius: 8px; 
-            font-weight: 700; 
-            transition: all 0.2s ease; 
+        /* 우측 상단 재화 표시 */
+        .top-right-currency {
+            position: absolute;
+            top: 20px; right: 30px;
+            display: flex; gap: 15px; z-index: 10;
         }
-        .tab-btn:hover { background: var(--panel); color: var(--text); }
-        .tab-btn.active { 
-            background: rgba(233, 69, 96, 0.1); 
-            color: var(--accent); 
-            border-color: var(--accent); 
+
+        .currency-pill {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 6px 16px;
+            display: flex; align-items: center; gap: 8px;
+            font-weight: 700; font-size: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            user-select: none;
+        }
+        .currency-pill img { width: 20px; height: 20px; border-radius: 50%; pointer-events: none; }
+
+        .recharge-btn { cursor: pointer; background: rgba(255, 0, 85, 0.2); border-color: var(--accent); transition: 0.2s; }
+        .recharge-btn:hover { background: rgba(255, 0, 85, 0.4); transform: scale(1.05); }
+        .add-btn {
+            background: var(--accent); color: #fff; width: 22px; height: 22px; 
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; 
+            font-weight: 900; margin-left: 5px; font-size: 16px; line-height: 1;
+        }
+
+        /* 좌측 픽업 탭 */
+        .tabs { 
+            position: absolute; top: 50%; left: 30px; 
+            transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 20px; z-index: 10;
+        }
+
+        .tab-btn { 
+            background: rgba(15, 15, 20, 0.85);
+            backdrop-filter: blur(10px);
+            border: 2px solid #333;
+            border-radius: 50px; 
+            display: flex; align-items: center;
+            padding: 4px 20px 4px 4px;
+            cursor: pointer; transition: all 0.2s ease;
+            width: 260px; color: #888;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+            user-select: none;
+        }
+
+        .tab-btn img {
+            width: 58px; height: 58px; border-radius: 50%;
+            object-fit: cover; border: 2px solid transparent;
+            margin-right: 15px; background-color: #222;
+            pointer-events: none;
+        }
+
+        .tab-text {
+            display: flex; flex-direction: column; align-items: flex-end; flex-grow: 1;
+            text-align: right; line-height: 1.2;
+        }
+
+        .nte-logo { font-size: 11px; font-weight: 900; font-style: italic; opacity: 0.5; margin-bottom: 2px; }
+        .tab-title { font-size: 15px; font-weight: 800; word-break: keep-all; }
+
+        .tab-btn.active#tab-pickup { border-color: #ff0055; background: rgba(255, 0, 85, 0.15); color: #fff; box-shadow: 0 0 20px rgba(255,0,85,0.2), inset 0 0 15px rgba(255,0,85,0.1); }
+        .tab-btn.active#tab-standard { border-color: #0088ff; background: rgba(0, 136, 255, 0.15); color: #fff; box-shadow: 0 0 20px rgba(0,136,255,0.2), inset 0 0 15px rgba(0,136,255,0.1); }
+        .tab-btn.active#tab-weapon { border-color: #ffcc00; background: rgba(255, 204, 0, 0.15); color: #fff; box-shadow: 0 0 20px rgba(255,204,0,0.2), inset 0 0 15px rgba(255,204,0,0.1); }
+        .tab-btn:hover { border-color: #777; color: #ccc; filter: brightness(1.2); }
+
+        /* 우측 픽업 정보 및 천장 스택 */
+        .right-info {
+            position: absolute; top: 15%; right: 40px;
+            text-align: right; z-index: 10;
+            display: flex; flex-direction: column; align-items: flex-end;
+            user-select: none;
+        }
+
+        .banner-title {
+            font-size: 42px; font-weight: 900; font-style: italic;
+            color: var(--s-color);
+            text-shadow: 2px 2px 0 #000, -1px -1px 0 #fff, 0 0 20px rgba(255,204,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        .pity-box {
+            background: rgba(10, 10, 15, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 10px 20px;
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 10px;
+            max-width: 380px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .pity-badge {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 10px; border-radius: 12px;
+            font-size: 14px; font-weight: 800; color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            min-width: 50px; text-align: center;
+        }
+
+        .pity-desc { font-size: 14px; font-weight: 600; color: #eee; text-align: left; line-height: 1.3; word-break: keep-all; }
+        .pity-desc .highlight { color: var(--s-color); font-weight: 800; }
+
+        /* 하단 컨트롤 */
+        .bottom-right-controls {
+            position: absolute; bottom: 40px; right: 40px;
+            display: flex; gap: 15px; z-index: 10;
+        }
+
+        .bottom-left-controls {
+            position: absolute; bottom: 40px; left: 30px;
+            display: flex; gap: 10px; z-index: 10;
+        }
+
+        .gacha-btn { 
+            padding: 18px 40px; font-size: 18px; font-weight: 900; 
+            cursor: pointer; border-radius: 8px; transition: all 0.15s; 
+            display: flex; align-items: center; gap: 10px;
+            user-select: none;
+        }
+
+        .btn-single { 
+            background: rgba(10, 10, 15, 0.8); color: #fff; 
+            border: 2px solid var(--glass-border); backdrop-filter: blur(5px);
+        }
+        .btn-single:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+
+        .btn-multi { 
+            background: rgba(10, 10, 15, 0.9); color: var(--s-color); 
+            border: 2px solid var(--s-color);
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
+        }
+        .btn-multi:hover { 
+            background: var(--s-color); color: #000; 
+            box-shadow: 0 0 25px rgba(255, 204, 0, 0.5); 
+        }
+        .gacha-btn:active { transform: scale(0.97); }
+
+        .btn-icon {
+            background: var(--glass-bg); backdrop-filter: blur(5px);
+            border: 1px solid var(--glass-border); border-radius: 8px;
+            padding: 10px 20px; display: flex; justify-content: center; align-items: center; gap: 8px;
+            cursor: pointer; color: #fff; font-size: 16px; font-weight: 700; transition: 0.2s;
+            user-select: none;
+        }
+        .btn-icon:hover { background: rgba(255,255,255,0.2); border-color: #fff; transform: translateY(-3px); }
+        .btn-danger { color: #ff4d4d; border-color: rgba(255, 77, 77, 0.3); }
+        .btn-danger:hover { background: rgba(255, 77, 77, 0.1); border-color: #ff4d4d; }
+
+        /* 충전 토스트 메시지 */
+        .toast-msg {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 10, 15, 0.9);
+            color: #fff;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 900;
+            z-index: 100000;
+            pointer-events: none;
+            animation: floatUpFade 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            border: 2px solid var(--s-color);
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.5);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .toast-msg img { width: 30px; height: 30px; }
+        .toast-highlight { color: var(--s-color); }
+
+        @keyframes floatUpFade {
+            0% { opacity: 0; transform: translate(-50%, -30%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            30% { transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -70%) scale(0.9); }
+        }
+
+        /* 모달 오버레이 공통 */
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: none; flex-direction: column; align-items: center; justify-content: center; 
+            z-index: 9999; pointer-events: auto;
+            user-select: none;
+        }
+
+        /* 가챠 결과창 오버레이 (화면 중앙 & 최상단 배치) */
+        #current-results-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 99999; 
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #current-results-overlay::after {
+            content: "화면을 클릭하여 닫기";
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            color: #aaa; font-size: 16px; font-weight: 600; pointer-events: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        .results-container {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; 
+            max-width: 900px; padding: 20px; pointer-events: none;
+        }
+
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* 가챠 결과 아이템 */
+        .item { 
+            width: 140px; height: 190px; border-radius: 8px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            font-weight: 700; padding: 10px; text-align: center; 
+            background: linear-gradient(180deg, rgba(30,30,40,0.9) 0%, rgba(15,15,20,0.95) 100%); 
+            border: 1px solid var(--glass-border);
+            position: relative; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0; transform: scale(0.8); cursor: default;
         }
         
-        /* 대시보드 */
-        .dashboard { max-width: 1000px; margin: 0 auto 30px auto; display: flex; flex-direction: column; gap: 12px; }
-        .dash-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-        .dash-box { 
-            background: var(--panel-gradient); 
-            padding: 14px 15px;
-            border-radius: var(--border-radius); 
-            flex: 1 1 180px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            box-sizing: border-box; 
-            min-width: 180px;
-            box-shadow: var(--box-shadow);
-            border: 1px solid var(--box-border);
-            transition: background 0.3s, border-color 0.3s;
-        }
-        .box-header { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--text-muted); width: 100%; }
-        .icon-img { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; background: transparent; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .dash-box span { color: var(--text); font-size: 24px; font-weight: 800; margin-top: 6px; letter-spacing: 0.5px; }
+        @keyframes popIn { to { opacity: 1; transform: scale(1); } }
 
-        /* 컨트롤 영역 */
-        .action-area { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto 40px auto; flex-wrap: wrap; gap: 20px; }
-        .controls { display: flex; gap: 12px; }
-        .gacha-btn { 
-            padding: 16px 36px; 
-            font-size: 18px; 
-            font-weight: 800; 
-            cursor: pointer; 
-            border: none; 
-            border-radius: 10px; 
-            transition: all 0.2s; 
-            color: white; 
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        .item img { 
+            width: 85px; height: 85px; object-fit: cover; border-radius: 5px; margin-bottom: 12px; 
+            background: #000; box-shadow: 0 4px 8px rgba(0,0,0,0.6); 
+            pointer-events: none; 
         }
-        .btn-single { background: linear-gradient(135deg, #4caf50, #388e3c); }
-        .btn-multi { background: linear-gradient(135deg, #2196f3, #1976d2); }
-        .gacha-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); filter: brightness(1.1); }
-        .gacha-btn:active { transform: translateY(1px); }
-
-        .reset-group { display: flex; gap: 10px; justify-content: flex-end; }
-        .btn-reset { 
-            padding: 12px 20px; 
-            font-size: 14px; 
-            background: var(--input-bg); 
-            color: var(--text); 
-            border: 1px solid var(--box-border); 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            transition: 0.2s;
-        }
-        .btn-reset:hover { background: var(--panel); filter: brightness(1.2); }
-        .btn-all-reset { background: rgba(244, 67, 54, 0.1) !important; color: #f44336 !important; border-color: rgba(244, 67, 54, 0.3) !important; }
-        .btn-all-reset:hover { background: #f44336 !important; color: #fff !important; }
-
-        /* 결과 영역 */
-        #current-results { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 1000px; margin: 0 auto 40px auto; min-height: 160px; }
-        .item { 
-            width: 120px; 
-            height: 160px; 
-            border-radius: 12px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            font-weight: 700; 
-            padding: 10px; 
-            text-align: center; 
-            box-sizing: border-box; 
-            background: var(--item-bg); 
-            border: 1px solid var(--box-border);
-            position: relative; 
-            overflow: hidden;
-            transition: transform 0.2s;
-        }
-        .item:hover { transform: scale(1.05); z-index: 10; }
-        .item img { width: 70px; height: 70px; object-fit: cover; border-radius: 50%; margin-bottom: 10px; background: #000; box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
-        .item .rank { font-size: 13px; position: absolute; top: 8px; left: 8px; padding: 3px 8px; border-radius: 6px; font-weight: 800; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .item .name-tag { font-size: 13px; color: var(--text); margin-bottom: 4px; word-break: keep-all; }
-        .item .note, .item .dupe-msg { font-size: 11px; margin-top: 4px; line-height: 1.2; font-weight: 600; }
+        .item .rank { font-size: 15px; position: absolute; top: 0; left: 0; padding: 4px 10px; border-radius: 0 0 8px 0; font-weight: 900; z-index: 2; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        .item .name-tag { font-size: 15px; color: #fff; margin-bottom: 4px; word-break: keep-all; text-shadow: 1px 1px 2px #000; pointer-events: none; }
+        .item .note, .item .dupe-msg { font-size: 12px; margin-top: 4px; line-height: 1.2; font-weight: 700; pointer-events: none; }
         .item .note { color: #4ade80; }
         .item .dupe-msg { color: #fbbf24; }
         
-        .item.s-rank { border: 2px solid var(--s-color); box-shadow: 0 0 20px rgba(255, 204, 0, 0.15); }
-        .item.s-rank .rank { background: var(--s-color); color: #000; }
-        .item.a-rank { border: 2px solid var(--a-color); }
-        .item.a-rank .rank { background: var(--a-color); color: #fff; }
-        .item.skin { border: 2px solid var(--skin-color); box-shadow: 0 0 20px rgba(255, 102, 178, 0.15); }
-        .item.skin .rank { background: var(--skin-color); color: #fff; }
+        .item.s-rank { border: 2px solid var(--s-color); box-shadow: 0 0 30px rgba(255, 204, 0, 0.3); }
+        .item.s-rank .rank { background: linear-gradient(135deg, #fff3b0, var(--s-color)); color: #000; }
+        .item.a-rank { border: 2px solid var(--a-color); box-shadow: 0 0 20px rgba(179, 136, 255, 0.2); }
+        .item.a-rank .rank { background: linear-gradient(135deg, #d8b4e2, var(--a-color)); color: #fff; }
+        .item.skin { border: 2px solid var(--skin-color); box-shadow: 0 0 30px rgba(255, 0, 127, 0.3); }
+        .item.skin .rank { background: linear-gradient(135deg, #ff66b2, var(--skin-color)); color: #fff; }
         .item.vehicle { border: 2px solid var(--veh-color); }
         .item.vehicle .rank { background: var(--veh-color); color: #000; }
         .item.r-rank { border: 1px solid var(--r-color); }
         .item.r-rank .rank { background: var(--r-color); color: #fff; }
 
-        /* 필터 및 기록 영역 */
-        .history-section { display: flex; flex-direction: column; max-width: 1100px; margin: 0 auto; gap: 20px; text-align: left; }
-        
-        .filter-bar { 
-            display: flex; 
-            gap: 15px; 
-            background: var(--panel-gradient); 
-            padding: 15px 25px; 
-            border-radius: var(--border-radius); 
-            align-items: center; 
-            justify-content: space-between;
-            border: 1px solid var(--box-border);
-            box-shadow: var(--box-shadow);
+        /* 커스텀 모달 컨텐츠 창 */
+        .modal-box {
+            background: #121218;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            position: relative;
         }
+        .modal-close-btn {
+            position: absolute; top: 15px; right: 20px;
+            font-size: 24px; color: #888; cursor: pointer; transition: 0.2s;
+        }
+        .modal-close-btn:hover { color: #fff; }
+
+        /* 충전 모달 스타일 */
+        .recharge-options { display: flex; gap: 20px; margin-top: 20px; }
+        .recharge-item {
+            background: #1a1a24; border: 2px solid #2a2a35; border-radius: 10px;
+            padding: 20px; width: 200px; text-align: center; cursor: pointer; transition: 0.2s;
+        }
+        .recharge-item:hover { background: #222230; border-color: var(--accent); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(255,0,85,0.2); }
+        .recharge-item img { width: 60px; height: 60px; margin-bottom: 15px; }
+        .recharge-item .amt { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .recharge-item .price { font-size: 16px; font-weight: 600; color: var(--s-color); }
+
+        /* 히스토리 모달 스타일 */
+        .history-modal-content { width: 90%; max-width: 1200px; max-height: 85vh; display: flex; flex-direction: column; }
+        .history-section { display: flex; flex-direction: column; gap: 20px; text-align: left; flex-grow: 1; overflow: hidden; }
+        .filter-bar { display: flex; gap: 15px; background: #161620; padding: 15px 25px; border-radius: 8px; align-items: center; justify-content: space-between; border: 1px solid #2a2a35; }
         .filter-group { display: flex; gap: 15px; align-items: center; }
-        .filter-bar select, .filter-bar input {
-            background: var(--input-bg);
-            color: var(--text);
-            border: 1px solid var(--box-border);
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: inherit;
-            outline: none;
-            transition: 0.2s;
-        }
-        .filter-bar select:focus, .filter-bar input:focus { border-color: var(--a-color); }
-        .filter-bar input::placeholder { color: var(--text-muted); }
-        .filter-title { font-weight: 700; color: var(--text-muted); font-size: 15px; }
+        .filter-bar select, .filter-bar input { background: #0d0d15; color: #fff; border: 1px solid #333; padding: 10px 15px; border-radius: 6px; font-size: 14px; outline: none; }
+        .filter-bar select:focus, .filter-bar input:focus { border-color: var(--accent); }
+        .filter-title { font-weight: 900; color: #fff; font-size: 20px; }
 
-        .history-container { display: flex; justify-content: space-between; gap: 20px; }
-        .history-box { flex: 1; background: var(--panel-gradient); padding: 25px; border-radius: var(--border-radius); max-height: 600px; overflow-y: auto; border: 1px solid var(--box-border); box-shadow: var(--box-shadow); }
-        
-        .history-box::-webkit-scrollbar { width: 8px; }
-        .history-box::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 4px; }
-        .history-box::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        .history-container { display: flex; justify-content: space-between; gap: 20px; overflow: hidden; flex-grow: 1; }
+        .history-box { flex: 1; background: #161620; padding: 25px; border-radius: 8px; overflow-y: auto; border: 1px solid #2a2a35; }
+        .history-box::-webkit-scrollbar { width: 6px; }
+        .history-box::-webkit-scrollbar-track { background: #0d0d15; }
+        .history-box::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
 
-        .history-box h3 { margin-top: 0; border-bottom: 2px solid var(--box-border); padding-bottom: 15px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
-        .history-list { display: flex; flex-direction: column; gap: 10px; }
-        .hist-item { 
-            display: flex; 
-            align-items: center; 
-            gap: 15px; 
-            background: var(--hist-bg); 
-            padding: 12px; 
-            border-radius: 8px; 
-            font-size: 15px; 
-            transition: 0.2s;
-            border-left: 4px solid transparent;
-            border: 1px solid var(--box-border);
-        }
-        .hist-item:hover { filter: brightness(1.05); transform: translateX(3px); }
-        .hist-item img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .history-box h3 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 15px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+        .history-list { display: flex; flex-direction: column; gap: 8px; }
+        .hist-item { display: flex; align-items: center; gap: 15px; background: #1f1f2a; padding: 10px; border-radius: 6px; font-size: 14px; border-left: 3px solid transparent; }
+        .hist-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
         .hist-info { display: flex; flex-direction: column; gap: 4px; }
-        .hist-rank-tag { font-size: 12px; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-block; width: max-content; }
+        .hist-rank-tag { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-block; width: max-content; }
         
         .hist-item.type-s { border-left-color: var(--s-color); }
         .hist-item.type-a { border-left-color: var(--a-color); }
         .hist-item.type-skin { border-left-color: var(--skin-color); }
-        
         .tag-s { background: rgba(255,204,0,0.15); color: var(--s-color); }
         .tag-a { background: rgba(179,136,255,0.15); color: var(--a-color); }
-        .tag-skin { background: rgba(255,102,178,0.15); color: var(--skin-color); }
-        .hist-name { font-weight: 600; color: var(--text); }
-
-        /* 모바일 최적화 (가챠 결과 리사이징) */
-        @media (max-width: 768px) {
-            body { padding: 15px 10px; }
-            
-            .header-container { flex-direction: column; gap: 15px; margin-bottom: 20px; }
-            h1 { font-size: 24px; }
-            .theme-toggle { position: static; align-self: center; }
-
-            .tabs { flex-wrap: wrap; gap: 8px; }
-            .tab-btn { padding: 10px 16px; font-size: 14px; flex: 1 1 30%; text-align: center; }
-            
-            .dash-row { gap: 8px; flex-wrap: nowrap; }
-            .dash-box { padding: 10px 5px; min-width: 0; flex: 1 1 auto; border-radius: 10px; }
-            .dash-box span { font-size: 18px; margin-top: 4px; }
-            .box-header { font-size: 11px; gap: 4px; }
-            .icon-img { width: 20px; height: 20px; }
-            
-            .action-area { flex-direction: column; gap: 15px; margin-bottom: 25px; }
-            .controls, .reset-group { width: 100%; justify-content: center; gap: 10px; }
-            .gacha-btn { padding: 14px 20px; font-size: 16px; flex: 1; border-radius: 8px; }
-            .btn-reset { padding: 10px 12px; flex: 1; font-size: 13px; }
-
-            /* 가챠 결과 한눈에 들어오게 폭풍 다이어트 */
-            #current-results { gap: 6px; margin-bottom: 25px; min-height: auto; }
-            .item { width: 66px; height: 105px; padding: 4px; border-radius: 6px; }
-            .item img { width: 36px; height: 36px; margin-bottom: 4px; }
-            .item .rank { font-size: 9px; padding: 2px 4px; top: 3px; left: 3px; border-radius: 3px; }
-            .item .name-tag { font-size: 10px; margin-bottom: 2px; letter-spacing: -0.5px; }
-            .item .note, .item .dupe-msg { font-size: 8px; margin-top: 1px; }
-
-            .filter-bar { flex-direction: column; align-items: stretch; padding: 12px; gap: 12px; }
-            .filter-group { flex-direction: column; align-items: stretch; gap: 10px; }
-            
-            .history-container { flex-direction: column; gap: 15px; }
-            .history-box { max-height: 400px; padding: 15px; }
-            .hist-item { width: 100%; padding: 10px; box-sizing: border-box; }
-        }
-
-        /* 아이폰 미니나 SE급 좁은 화면 대응 */
-        @media (max-width: 400px) {
-            .dash-box span { font-size: 16px; }
-            #current-results { gap: 4px; }
-            .item { width: 62px; height: 95px; padding: 3px; }
-            .item img { width: 32px; height: 32px; margin-bottom: 2px; }
-            .item .name-tag { font-size: 9px; }
-            .item .note, .item .dupe-msg { font-size: 7.5px; }
-        }
+        .tag-skin { background: rgba(255,0,127,0.15); color: var(--skin-color); }
+        .hist-name { font-weight: 600; color: #eee; }
     </style>
 </head>
 <body>
+    <div class="bg-layer"></div>
 
-    <div class="header-container">
-        <h1>이환NTE 가챠 시뮬레이터</h1>
-        <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">☀️ 라이트 모드</button>
-    </div>
-    
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchBanner('pickup')">픽업 캐릭터</button>
-        <button class="tab-btn" onclick="switchBanner('standard')">상시 캐릭터</button>
-        <button class="tab-btn" onclick="switchBanner('weapon')">픽업 아크</button>
-    </div>
+    <div class="ingame-ui-container">
+        
+        <div class="top-left-controls">
+            <div class="btn-icon" onclick="openHistory()" title="기록 보기">📜 획득 기록</div>
+        </div>
 
-    <div class="dashboard">
-        <div class="dash-row">
-            <div class="dash-box">
-                <div class="box-header"><img src="img/Icon_Ringstone.webp" class="icon-img" onerror="this.style.display='none'" alt=""> 소모 재화</div>
-                <span id="spent-currency">0</span>
-            </div>
-            <div class="dash-box">
-                <div class="box-header"><img src="img/gold_chequer.webp" class="icon-img" onerror="this.style.display='none'" alt=""> 탈차원 기물</div>
+        <div class="top-right-currency">
+            <div class="currency-pill" title="탈차원 기물">
+                <img src="img/gold_chequer.webp" onerror="this.style.display='none'" alt="">
                 <span id="tal-item">0</span>
             </div>
-            <div class="dash-box">
-                <div class="box-header"><img src="img/silver_chequer.webp" class="icon-img" onerror="this.style.display='none'" alt=""> 방향치 기물</div>
+            <div class="currency-pill" title="방향치 기물">
+                <img src="img/silver_chequer.webp" onerror="this.style.display='none'" alt="">
                 <span id="bang-item">0</span>
             </div>
-        </div>
-        <div class="dash-row">
-            <div class="dash-box">
-                <div class="box-header">현재 천장 스택</div>
-                <span id="pity-count">0 / 90</span>
+            <div class="currency-pill recharge-btn" title="환석 충전" onclick="openRecharge()">
+                <img src="img/Icon_Ringstone.webp" onerror="this.style.display='none'" alt="">
+                <span id="owned-currency">0</span>
+                <div class="add-btn">+</div>
             </div>
-            <div class="dash-box">
-                <div class="box-header" style="color: var(--s-color);">S급 획득 수</div>
-                <span id="total-s" style="color: var(--s-color);">0</span>
+        </div>
+
+        <div class="tabs">
+            <div class="tab-btn active" id="tab-pickup" onclick="switchBanner('pickup')">
+                <img src="img/nanari.webp" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1OCIgaGVpZ2h0PSI1OCI+PHJlY3Qgd2lkdGg9IjU4IiBoZWlnaHQ9IjU4IiBmaWxsPSIjMzMzIi8+PC9zdmc+'" alt="Pickup">
+                <div class="tab-text">
+                    <span class="nte-logo">NTE</span>
+                    <span class="tab-title">초대 가주 넘버원</span>
+                </div>
+            </div>
+            <div class="tab-btn" id="tab-standard" onclick="switchBanner('standard')">
+                <img src="img/silver_chequer.webp" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1OCIgaGVpZ2h0PSI1OCI+PHJlY3Qgd2lkdGg9IjU4IiBoZWlnaHQ9IjU4IiBmaWxsPSIjMzMzIi8+PC9zdmc+'" alt="Standard">
+                <div class="tab-text">
+                    <span class="nte-logo">NTE</span>
+                    <span class="tab-title">기묘한 만남</span>
+                </div>
+            </div>
+            <div class="tab-btn" id="tab-weapon" onclick="switchBanner('weapon')">
+                <img src="img/ready.webp" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1OCIgaGVpZ2h0PSI1OCI+PHJlY3Qgd2lkdGg9IjU4IiBoZWlnaHQ9IjU4IiBmaWxsPSIjMzMzIi8+PC9zdmc+'" alt="Weapon">
+                <div class="tab-text">
+                    <span class="nte-logo">NTE</span>
+                    <span class="tab-title">아크 리서치</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-info">
+            <div class="banner-title" id="banner-title-text">초대 가주 넘버원</div>
+            
+            <div class="pity-box">
+                <div class="pity-badge" id="pity-count-badge">0/90</div>
+                <div class="pity-desc" id="pity-desc-text">
+                    주사위를 <span class="highlight">90</span>회 던지면, <span class="highlight">S급 캐릭터 나나리</span> 확정 획득
+                </div>
+            </div>
+            
+            <div class="pity-box">
+                <div class="pity-badge" style="color: var(--s-color); border-color: var(--s-color);">S급</div>
+                <div class="pity-desc">
+                    누적 S급 획득 수: <span class="highlight" id="total-s" style="font-size: 16px;">0</span>회
+                </div>
+            </div>
+        </div>
+
+        <div id="current-results-overlay" onclick="closeResults()">
+            <div id="results-container" class="results-container"></div>
+        </div>
+
+        <div class="bottom-left-controls">
+            <div class="btn-icon btn-danger" onclick="resetSpecific('all')" title="전체 초기화">🔄 계정 초기화</div>
+        </div>
+
+        <div class="bottom-right-controls">
+            <button class="gacha-btn btn-single" id="btn-1" onclick="pull(1)">🎲 1회 던지기</button>
+            <button class="gacha-btn btn-multi" onclick="pull(10)">🎲 10회 던지기</button>
+        </div>
+    </div>
+
+    <div id="recharge-modal" class="modal-overlay" onclick="closeRecharge()">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-close-btn" onclick="closeRecharge()">✖</div>
+            <h2 style="margin-top: 0; color: #fff;">환석 충전소</h2>
+            <div style="color: #aaa; font-size: 14px;">원하는 패키지를 클릭하여 충전하세요. (따로 제한은 없습니다.)</div>
+            <div class="recharge-options">
+                <div class="recharge-item" onclick="addCurrency(6480)">
+                    <img src="img/Icon_Ringstone.webp" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZmYwMDg4Ii8+PC9zdmc+'" alt="6480">
+                    <div>
+                        <div class="amt">6480 환석</div>
+                        <div class="price">119,000 KRW</div>
+                    </div>
+                </div>
+                <div class="recharge-item" onclick="addCurrency(3280)">
+                    <img src="img/Icon_Ringstone.webp" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZmYwMDg4Ii8+PC9zdmc+'" alt="3280">
+                    <div>
+                        <div class="amt">3280 환석</div>
+                        <div class="price">63,000 KRW</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="action-area">
-        <div class="controls">
-            <button class="gacha-btn btn-single" id="btn-1" onclick="pull(1)">1회 뽑기</button>
-            <button class="gacha-btn btn-multi" onclick="pull(10)">10회 뽑기</button>
-        </div>
-        <div class="reset-group">
-            <button class="btn-reset" onclick="resetSpecific('history')">기록 삭제</button>
-            <button class="btn-reset" onclick="resetSpecific('stack')">스택 초기화</button>
-            <button class="btn-reset btn-all-reset" onclick="resetSpecific('all')">전체 초기화</button>
-        </div>
-    </div>
+    <div id="history-modal" class="modal-overlay" onclick="closeHistory()">
+        <div class="modal-box history-modal-content" onclick="event.stopPropagation()">
+            <div class="modal-close-btn" onclick="closeHistory()">✖</div>
+            <div class="history-section">
+                <div class="filter-bar">
+                    <span class="filter-title">획득 기록 확인</span>
+                    <div class="filter-group">
+                        <select id="type-filter" onchange="renderHistory()">
+                            <option value="ALL">전체 보기</option>
+                            <option value="CHAR">캐릭터만</option>
+                            <option value="ARK">아크(무기)만</option>
+                            <option value="ETC">스킨 / 탈것</option>
+                        </select>
+                        <input type="text" id="name-filter" placeholder="이름 검색..." oninput="renderHistory()">
+                        <div class="btn-icon btn-danger" style="padding: 8px 15px; border-radius: 6px; font-size: 14px;" onclick="resetSpecific('history')">기록 삭제</div>
+                    </div>
+                </div>
 
-    <div id="current-results"></div>
-
-    <div class="history-section">
-        <div class="filter-bar">
-            <span class="filter-title">획득 기록 필터</span>
-            <div class="filter-group">
-                <select id="type-filter" onchange="renderHistory()">
-                    <option value="ALL">전체 보기</option>
-                    <option value="CHAR">캐릭터만</option>
-                    <option value="ARK">아크(무기)만</option>
-                    <option value="ETC">스킨 / 탈것</option>
-                </select>
-                <input type="text" id="name-filter" placeholder="이름으로 검색..." oninput="renderHistory()">
-            </div>
-        </div>
-
-        <div class="history-container">
-            <div class="history-box">
-                <h3 style="color: var(--s-color);">S급 & 외형 기록</h3>
-                <div class="history-list" id="history-s"></div>
-            </div>
-            <div class="history-box">
-                <h3 style="color: var(--a-color);">A급 획득 기록</h3>
-                <div class="history-list" id="history-a"></div>
+                <div class="history-container">
+                    <div class="history-box">
+                        <h3 style="color: var(--s-color);">S급 & 외형 획득 이력</h3>
+                        <div class="history-list" id="history-s"></div>
+                    </div>
+                    <div class="history-box">
+                        <h3 style="color: var(--a-color);">A급 획득 이력</h3>
+                        <div class="history-list" id="history-a"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function toggleTheme() {
-            const root = document.documentElement;
-            const btn = document.getElementById('theme-btn');
-            if (root.getAttribute('data-theme') === 'light') {
-                root.removeAttribute('data-theme');
-                btn.innerText = '☀️ 라이트 모드';
-                localStorage.setItem('theme', 'dark');
-            } else {
-                root.setAttribute('data-theme', 'light');
-                btn.innerText = '🌙 다크 모드';
-                localStorage.setItem('theme', 'light');
-            }
-        }
-
-        window.onload = () => {
-            if (localStorage.getItem('theme') === 'light') {
-                document.documentElement.setAttribute('data-theme', 'light');
-                document.getElementById('theme-btn').innerText = '🌙 다크 모드';
-            }
-        };
-
         const DB = {
             pickupChar: { name: "나나리", type: "S_CHAR", img: "img/nanari.webp" },
             standardChars: [
@@ -494,19 +578,55 @@
             vehicle: { name: "M-1000리버리", type: "VEHICLE", img: "img/tigercar.webp" }
         };
 
+        let globalCurrency = { ringstone: 0, tal: 0, bang: 0 };
         let stats = {
-            pickup: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0, outfitPity: 0, liveryPity: 0, gliderPity: 0, outfitPityUsed: false, liveryPityUsed: false, gliderPityUsed: false },
-            standard: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0 },
-            weapon: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0, sGuarPity: 0, pickupGuarPity: 0 }
+            pickup: { pity: 0, sCount: 0, outfitPity: 0, liveryPity: 0, gliderPity: 0, outfitPityUsed: false, liveryPityUsed: false, gliderPityUsed: false },
+            standard: { pity: 0, sCount: 0 },
+            weapon: { pity: 0, sCount: 0, sGuarPity: 0, pickupGuarPity: 0 }
         };
         
         let currentBanner = 'pickup'; let inventory = {}; let historyS = []; let historyA = [];
+        
+        // 광클 방지용 상태 변수
+        let isPulling = false; 
+
+        // UI 모달 컨트롤
+        function openRecharge() { document.getElementById('recharge-modal').style.display = 'flex'; }
+        function closeRecharge() { document.getElementById('recharge-modal').style.display = 'none'; }
+        function openHistory() { document.getElementById('history-modal').style.display = 'flex'; renderHistory(); }
+        function closeHistory() { document.getElementById('history-modal').style.display = 'none'; }
+        function closeResults() { document.getElementById('current-results-overlay').style.display = 'none'; document.getElementById('results-container').innerHTML = ''; }
+
+        // 충전 알림 토스트 띄우기
+        function showToast(amount) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-msg';
+            toast.innerHTML = `<img src="img/Icon_Ringstone.webp" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZmYwMDg4Ii8+PC9zdmc+'"> <span><span class="toast-highlight">+${amount} 환석</span> 충전 완료!</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1500);
+        }
+
+        function addCurrency(amount) {
+            globalCurrency.ringstone += amount;
+            updateDashboard();
+            showToast(amount);
+        }
 
         function switchBanner(bannerType) {
             currentBanner = bannerType;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('btn-1').style.display = bannerType === 'weapon' ? 'none' : 'block';
+            document.getElementById(`tab-${bannerType}`).classList.add('active');
+            
+            document.getElementById('btn-1').style.display = bannerType === 'weapon' ? 'none' : 'flex';
+            
+            const titles = { pickup: '초대 가주 넘버원', standard: '기묘한 만남', weapon: '아크 리서치' };
+            const descTarget = { pickup: '나나리', standard: '상시', weapon: '아크' };
+            
+            document.getElementById('banner-title-text').innerText = titles[bannerType];
+            
+            let maxP = bannerType === 'weapon' ? 80 : 90;
+            document.getElementById('pity-desc-text').innerHTML = `주사위를 <span class="highlight">${maxP}</span>회 던지면, <span class="highlight">S급 ${descTarget[bannerType]}</span> 확정 획득`;
+
             updateDashboard();
         }
 
@@ -515,27 +635,32 @@
             let maxPity = currentBanner === 'weapon' ? 80 : 90;
             let currentPity = currentBanner === 'weapon' ? s.pickupGuarPity : s.pity;
 
-            document.getElementById('pity-count').innerText = `${currentPity} / ${maxPity}`;
+            document.getElementById('pity-count-badge').innerText = `${currentPity}/${maxPity}`;
             document.getElementById('total-s').innerText = s.sCount;
-            document.getElementById('spent-currency').innerText = s.spent.toLocaleString();
-            document.getElementById('tal-item').innerText = s.tal;
-            document.getElementById('bang-item').innerText = s.bang;
+            document.getElementById('owned-currency').innerText = globalCurrency.ringstone.toLocaleString();
+            document.getElementById('tal-item').innerText = globalCurrency.tal.toLocaleString();
+            document.getElementById('bang-item').innerText = globalCurrency.bang.toLocaleString();
         }
 
         function getRandomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-        function processDuplicate(item, bannerStats) {
+        function processDuplicate(item) {
             inventory[item.name] = (inventory[item.name] || 0) + 1;
             let count = inventory[item.name]; let msg = "";
-            if (item.type === 'S_CHAR') {
-                if (count > 1 && count <= 7) { bannerStats.tal += 40; msg = "파편+1, 기물+40"; }
-                else if (count > 7) { bannerStats.tal += 80; msg = "기물+80"; }
+            
+            if (item.type.includes('ARK')) {
+                if (item.rank === 'S') { globalCurrency.tal += 40; msg = "기물+40"; }
+                else if (item.rank === 'A') { globalCurrency.tal += 4; msg = "기물+4"; }
+                else if (item.rank === 'B') { globalCurrency.bang += 20; }
+            } else if (item.type === 'S_CHAR') {
+                if (count > 1 && count <= 7) { globalCurrency.tal += 40; msg = "파편+1, 기물+40"; }
+                else if (count > 7) { globalCurrency.tal += 80; msg = "기물+80"; }
             } else if (item.type === 'A_CHAR') {
-                if (count > 1 && count <= 7) { bannerStats.tal += 6; msg = "파편+1, 기물+6"; }
-                else if (count > 7) { bannerStats.tal += 12; msg = "기물+12"; }
-            } else if (item.type === 'VEHICLE' && count > 1) { bannerStats.tal += 16; msg = "기물+16"; }
-            else if (item.type === 'GLIDER' && count > 1) { bannerStats.tal += 4; msg = "기물+4"; }
-            else if (item.type === 'B_ARK') { bannerStats.bang += 20; }
+                if (count > 1 && count <= 7) { globalCurrency.tal += 6; msg = "파편+1, 기물+6"; }
+                else if (count > 7) { globalCurrency.tal += 12; msg = "기물+12"; }
+            } else if (item.type === 'VEHICLE' && count > 1) { globalCurrency.tal += 16; msg = "기물+16"; }
+            else if (item.type === 'GLIDER' && count > 1) { globalCurrency.tal += 4; msg = "기물+4"; }
+            
             return msg;
         }
 
@@ -557,7 +682,7 @@
                         else if (Math.random()*100 < 0.33) item = { ...DB.vehicle, rank: 'VEHICLE', class: 'vehicle' };
                         else if (Math.random()*100 < 1.71) item = { ...DB.glider, rank: 'GLIDER', class: 'vehicle' };
                     }
-                    if(item) { item.dupeMsg = processDuplicate(item, s); return item; }
+                    if(item) { item.dupeMsg = processDuplicate(item); return item; }
                 }
 
                 if (s.pity >= 90) {
@@ -565,8 +690,8 @@
                 } else if (s.pity >= 70) {
                     if (roll < 10) { s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : getRandomItem(DB.standardChars)), rank: 'S', class: 's-rank', note: '동행 타일 확정' }; }
                     else {
-                        if (Math.random()*100 < 3.0) { s.pity = 0; s.sCount++; s.tal += 2; item = { ...(isPickupBanner ? DB.pickupChar : getRandomItem(DB.standardChars)), rank: 'S', class: 's-rank', note: '영웅 상자 당첨' }; }
-                        else { s.tal += 2; item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank', note: '영웅 상자 (기물+2)' }; }
+                        if (Math.random()*100 < 3.0) { s.pity = 0; s.sCount++; globalCurrency.tal += 2; item = { ...(isPickupBanner ? DB.pickupChar : getRandomItem(DB.standardChars)), rank: 'S', class: 's-rank', note: '영웅 상자 당첨' }; }
+                        else { globalCurrency.tal += 2; item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank', note: '영웅 상자 (기물+2)' }; }
                     }
                 } else {
                     if (isExtra) {
@@ -595,34 +720,67 @@
                     else item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank' };
                 }
             }
-            item.dupeMsg = processDuplicate(item, s);
+            item.dupeMsg = processDuplicate(item);
             return item;
         }
 
-        function pull(times) {
-            const resultsDiv = document.getElementById('current-results');
-            resultsDiv.innerHTML = ''; stats[currentBanner].spent += (times * 160); 
+        function executePull(times) {
+            const resultsOverlay = document.getElementById('current-results-overlay');
+            const resultsContainer = document.getElementById('results-container');
+            
+            resultsContainer.innerHTML = ''; 
+            resultsOverlay.style.display = 'flex';
+            
             let loopCount = (times === 10 && currentBanner !== 'weapon') ? 11 : times; 
             
             for (let i = 0; i < loopCount; i++) {
-                let isExtra = (times === 10 && i === 10 && currentBanner !== 'weapon'); 
-                let item = pullSingle(isExtra);
-                const el = document.createElement('div');
-                el.className = `item ${item.class}`;
-                el.innerHTML = `
-                    <div class="rank">${item.rank}</div>
-                    <img src="${item.img}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MCIgaGVpZ2h0PSI3MCI+PHJlY3Qgd2lkdGg9IjcwIiBoZWlnaHQ9IjcwIiBmaWxsPSIjNDQ0Ii8+PC9zdmc+'" alt="${item.name}">
-                    <div class="name-tag">${item.name}</div>
-                    ${item.note ? `<div class="note">${item.note}</div>` : ''}
-                    ${item.dupeMsg ? `<div class="dupe-msg">${item.dupeMsg}</div>` : ''}`;
-                resultsDiv.appendChild(el);
-                
-                item.id = Date.now() + Math.random();
-                
-                if (['S', 'SKIN', 'VEHICLE', 'GLIDER'].includes(item.rank)) historyS.unshift(item);
-                else if (item.rank === 'A') historyA.unshift(item);
+                setTimeout(() => {
+                    let isExtra = (times === 10 && i === 10 && currentBanner !== 'weapon'); 
+                    let item = pullSingle(isExtra);
+                    const el = document.createElement('div');
+                    el.className = `item ${item.class}`;
+                    
+                    el.onclick = (e) => e.stopPropagation();
+                    el.innerHTML = `
+                        <div class="rank">${item.rank}</div>
+                        <img src="${item.img}" draggable="false" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MCIgaGVpZ2h0PSI3MCI+PHJlY3Qgd2lkdGg9IjcwIiBoZWlnaHQ9IjcwIiBmaWxsPSIjNDQ0Ii8+PC9zdmc+'" alt="${item.name}">
+                        <div class="name-tag">${item.name}</div>
+                        ${item.note ? `<div class="note">${item.note}</div>` : ''}
+                        ${item.dupeMsg ? `<div class="dupe-msg">${item.dupeMsg}</div>` : ''}`;
+                    resultsContainer.appendChild(el);
+                    
+                    item.id = Date.now() + Math.random();
+                    
+                    if (['S', 'SKIN', 'VEHICLE', 'GLIDER'].includes(item.rank)) historyS.unshift(item);
+                    else if (item.rank === 'A') historyA.unshift(item);
+                    
+                    if(i === loopCount - 1) {
+                        updateDashboard(); renderHistory();
+                        isPulling = false; // 가챠 연출 끝나면 락 해제
+                    }
+                }, i * 60); 
             }
-            updateDashboard(); renderHistory();
+        }
+
+        function pull(times) {
+            // 이미 가챠가 진행 중이면 무시 (광클 방지)
+            if (isPulling) return;
+
+            let cost = times * 160;
+            if (globalCurrency.ringstone < cost) {
+                alert('환석이 부족합니다. 환석을 충전하세요.');
+                openRecharge();
+                return;
+            }
+            
+            // 가챠 시작 상태로 변경 (락 걸기)
+            isPulling = true;
+            
+            globalCurrency.ringstone -= cost;
+            updateDashboard();
+
+            // 눈뽕 연출 없이 바로 실행
+            executePull(times);
         }
 
         function renderHistory() {
@@ -653,7 +811,7 @@
                 
                 return `
                 <div class="hist-item ${typeClass}">
-                    <img src="${i.img}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjNDQ0Ii8+PC9zdmc+'">
+                    <img src="${i.img}" draggable="false" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjNDQ0Ii8+PC9zdmc+'">
                     <div class="hist-info">
                         <div class="hist-rank-tag ${tagClass}">${displayRank}</div>
                         <div class="hist-name">${i.name}</div>
@@ -661,16 +819,22 @@
                 </div>`;
             };
 
-            document.getElementById('history-s').innerHTML = filteredS.map(mapHTML).join('') || '<div style="color: var(--text-muted); text-align:center; padding: 20px;">기록이 없습니다.</div>';
-            document.getElementById('history-a').innerHTML = filteredA.map(mapHTML).join('') || '<div style="color: var(--text-muted); text-align:center; padding: 20px;">기록이 없습니다.</div>';
+            document.getElementById('history-s').innerHTML = filteredS.map(mapHTML).join('') || '<div style="color: #666; padding: 20px;">기록이 없습니다.</div>';
+            document.getElementById('history-a').innerHTML = filteredA.map(mapHTML).join('') || '<div style="color: #666; padding: 20px;">기록이 없습니다.</div>';
         }
 
         function resetSpecific(type) {
-            if (type === 'history' || type === 'all') { historyS = []; historyA = []; renderHistory(); document.getElementById('current-results').innerHTML = ''; }
+            if (type === 'history' || type === 'all') { 
+                historyS = []; historyA = []; 
+                renderHistory(); 
+                document.getElementById('results-container').innerHTML = ''; 
+                document.getElementById('current-results-overlay').style.display = 'none'; 
+            }
             if (type === 'stack' || type === 'all') {
                 if(type === 'all') {
-                    stats = { pickup: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0, outfitPity: 0, liveryPity: 0, gliderPity: 0, outfitPityUsed: false, liveryPityUsed: false, gliderPityUsed: false }, standard: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0 }, weapon: { pity: 0, sCount: 0, spent: 0, tal: 0, bang: 0, sGuarPity: 0, pickupGuarPity: 0 } };
+                    stats = { pickup: { pity: 0, sCount: 0, outfitPity: 0, liveryPity: 0, gliderPity: 0, outfitPityUsed: false, liveryPityUsed: false, gliderPityUsed: false }, standard: { pity: 0, sCount: 0 }, weapon: { pity: 0, sCount: 0, sGuarPity: 0, pickupGuarPity: 0 } };
                     inventory = {}; 
+                    globalCurrency = { ringstone: 0, tal: 0, bang: 0 };
                 } else {
                     let s = stats[currentBanner];
                     s.pity = 0; s.sGuarPity = 0; s.pickupGuarPity = 0; s.outfitPity = 0; s.liveryPity = 0; s.gliderPity = 0; s.outfitPityUsed = false; s.liveryPityUsed = false; s.gliderPityUsed = false;
@@ -678,6 +842,9 @@
             }
             updateDashboard();
         }
+        
+        // 초기화
+        switchBanner('pickup');
     </script>
 </body>
 </html>
