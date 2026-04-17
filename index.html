@@ -2,12 +2,12 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1280">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <link rel="icon" href="img/favicon.png" type="image/png">
 
     <meta property="og:title" content="이환NTE 가챠 시뮬레이터">
-    <meta property="og:description" content="클라 데이터 기반 보드판 & 무기 가챠 시뮬레이터">
+    <meta property="og:description" content="by 오고곡">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://ntegacha.vercel.app/img/thumbnail.png">
 
@@ -33,6 +33,7 @@
             overflow-x: hidden;
             scrollbar-width: thin;
             scrollbar-color: var(--accent) #111;
+            touch-action: manipulation; /* 모바일 더블탭 줌 방지 */
         }
 
         body::-webkit-scrollbar { width: 8px; }
@@ -56,6 +57,8 @@
             width: 100vw;
             min-height: 100vh;
             pointer-events: none; 
+            display: flex;
+            flex-direction: column;
         }
         
         .ingame-ui-container > * { pointer-events: auto; }
@@ -84,6 +87,7 @@
             font-weight: 700; font-size: 15px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             user-select: none;
+            white-space: nowrap;
         }
         .currency-pill img { width: 20px; height: 20px; border-radius: 50%; pointer-events: none; }
 
@@ -168,6 +172,7 @@
             font-size: 14px; font-weight: 800; color: #fff;
             border: 1px solid rgba(255,255,255,0.2);
             min-width: 50px; text-align: center;
+            white-space: nowrap;
         }
 
         .pity-desc { font-size: 14px; font-weight: 600; color: #eee; text-align: left; line-height: 1.3; word-break: keep-all; }
@@ -187,8 +192,8 @@
         .gacha-btn { 
             padding: 18px 40px; font-size: 18px; font-weight: 900; 
             cursor: pointer; border-radius: 8px; transition: all 0.15s; 
-            display: flex; align-items: center; gap: 10px;
-            user-select: none;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            user-select: none; white-space: nowrap;
         }
 
         .btn-single { 
@@ -213,7 +218,7 @@
             border: 1px solid var(--glass-border); border-radius: 8px;
             padding: 10px 20px; display: flex; justify-content: center; align-items: center; gap: 8px;
             cursor: pointer; color: #fff; font-size: 16px; font-weight: 700; transition: 0.2s;
-            user-select: none;
+            user-select: none; white-space: nowrap;
         }
         .btn-icon:hover { background: rgba(255,255,255,0.2); border-color: #fff; transform: translateY(-3px); }
         .btn-danger { color: #ff4d4d; border-color: rgba(255, 77, 77, 0.3); }
@@ -382,6 +387,94 @@
         .tag-a { background: rgba(179,136,255,0.15); color: var(--a-color); }
         .tag-skin { background: rgba(255,0,127,0.15); color: var(--skin-color); }
         .hist-name { font-weight: 600; color: #eee; }
+
+        /* ==========================================================================
+           반응형 모바일 UI 최적화 (가로/세로)
+           ========================================================================== */
+
+        /* 스마트폰 세로 모드 (Portrait) */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .top-left-controls { top: 15px; left: 15px; }
+            .btn-icon { padding: 8px 12px; font-size: 13px; }
+
+            .top-right-currency { top: 15px; right: 15px; gap: 6px; flex-wrap: wrap; justify-content: flex-end; width: 60%; }
+            .currency-pill { padding: 4px 10px; font-size: 12px; }
+            .currency-pill img { width: 16px; height: 16px; }
+            .add-btn { width: 18px; height: 18px; font-size: 14px; }
+
+            .right-info { top: 80px; right: 15px; left: 15px; align-items: flex-end; }
+            .banner-title { font-size: 32px; margin-bottom: 10px; text-align: right; word-break: keep-all; }
+            .pity-box { max-width: none; width: fit-content; padding: 8px 12px; }
+            
+            .tabs { top: 250px; left: 15px; transform: none; gap: 12px; }
+            .tab-btn { width: 220px; padding: 4px 15px 4px 4px; border-radius: 40px; }
+            .tab-btn img { width: 44px; height: 44px; margin-right: 10px; }
+            .tab-title { font-size: 13px; }
+
+            /* 가챠 버튼 영역을 화면 하단 꽉 차게 변경 */
+            .bottom-right-controls { 
+                bottom: 20px; right: 0; left: 0; width: 100%; 
+                justify-content: center; gap: 10px; padding: 0 15px; box-sizing: border-box; 
+            }
+            .gacha-btn { padding: 15px 10px; font-size: 16px; flex: 1; }
+
+            /* 초기화 버튼 위로 배치 */
+            .bottom-left-controls { 
+                bottom: 90px; left: 0; right: 0; width: 100%; 
+                justify-content: center; padding: 0;
+            }
+
+            /* 결과창 스케일 조정 (10연차가 세로화면 안넘치게) */
+            .item { width: 85px; height: 125px; padding: 6px; }
+            .item img { width: 50px; height: 50px; margin-bottom: 8px; }
+            .item .rank { font-size: 11px; padding: 2px 6px; }
+            .item .name-tag { font-size: 11px; }
+            .item .note, .item .dupe-msg { font-size: 10px; margin-top: 2px; }
+
+            /* 모달창 반응형 */
+            .modal-box { width: 92%; padding: 20px; box-sizing: border-box; }
+            .recharge-options { flex-direction: column; align-items: center; }
+            .recharge-item { width: 100%; box-sizing: border-box; }
+            .history-container { flex-direction: column; }
+            .history-box { max-height: 250px; padding: 15px; }
+            .filter-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 15px; }
+            .filter-group { flex-wrap: wrap; }
+        }
+
+        /* 스마트폰 가로 모드 (Landscape) */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .top-left-controls { top: 10px; left: 10px; }
+            .btn-icon { padding: 6px 12px; font-size: 13px; }
+
+            .top-right-currency { top: 10px; right: 10px; gap: 8px; }
+            .currency-pill { padding: 4px 10px; font-size: 12px; }
+
+            .tabs { left: 15px; gap: 10px; }
+            .tab-btn { width: 200px; padding: 2px 15px 2px 2px; border-radius: 40px; }
+            .tab-btn img { width: 40px; height: 40px; margin-right: 10px; }
+            .tab-title { font-size: 12px; }
+
+            .right-info { top: 15%; right: 20px; }
+            .banner-title { font-size: 28px; margin-bottom: 10px; }
+            .pity-box { padding: 6px 12px; margin-bottom: 6px; }
+            .pity-badge { font-size: 12px; padding: 2px 8px; }
+            .pity-desc { font-size: 12px; }
+
+            .bottom-right-controls { bottom: 15px; right: 20px; gap: 10px; }
+            .gacha-btn { padding: 10px 20px; font-size: 14px; }
+
+            .bottom-left-controls { bottom: 15px; left: 15px; }
+
+            /* 결과창 스케일 미세조정 */
+            .item { width: 90px; height: 135px; padding: 6px; }
+            .item img { width: 55px; height: 55px; margin-bottom: 6px; }
+            .item .name-tag { font-size: 12px; }
+
+            /* 모달창 반응형 */
+            .modal-box { padding: 15px; }
+            .history-modal-content { height: 90vh; }
+            .history-box { max-height: 300px; }
+        }
     </style>
 </head>
 <body>
