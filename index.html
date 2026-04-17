@@ -7,9 +7,9 @@
     <link rel="icon" href="img/favicon.png" type="image/png">
 
     <meta property="og:title" content="이환NTE 가챠 시뮬레이터">
-    <meta property="og:description" content="by 오고곡">
+    <meta property="og:description" content="클라 데이터 기반 보드판 & 무기 가챠 시뮬레이터">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://ntegacha.vercel.app/img/thumbnail.png">
+    <meta property="og:image" content="https://너의버셀주소.vercel.app/img/thumbnail.png">
 
     <title>이환NTE 가챠 시뮬레이터</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
@@ -275,7 +275,7 @@
         .tag-skin { background: rgba(255,102,178,0.15); color: var(--skin-color); }
         .hist-name { font-weight: 600; color: var(--text); }
 
-        /* 모바일 최적화 */
+        /* 모바일 최적화 (강제 한 줄 정렬 수정) */
         @media (max-width: 768px) {
             body { padding: 15px 10px; }
             
@@ -286,11 +286,12 @@
             .tabs { flex-wrap: wrap; gap: 8px; }
             .tab-btn { padding: 10px 16px; font-size: 14px; flex: 1 1 30%; text-align: center; }
             
-            .dash-row { gap: 10px; }
-            .dash-box { padding: 10px; min-width: 130px; flex: 1 1 45%; border-radius: 10px; }
-            .dash-box span { font-size: 20px; margin-top: 4px; }
-            .box-header { font-size: 12px; }
-            .icon-img { width: 28px; height: 28px; }
+            /* 대시보드 3개가 무조건 한 줄에 나오도록 강제 (nowrap) */
+            .dash-row { gap: 8px; flex-wrap: nowrap; }
+            .dash-box { padding: 10px 5px; min-width: 0; flex: 1 1 auto; border-radius: 10px; }
+            .dash-box span { font-size: 18px; margin-top: 4px; }
+            .box-header { font-size: 11px; gap: 4px; }
+            .icon-img { width: 20px; height: 20px; }
             
             .action-area { flex-direction: column; gap: 15px; margin-bottom: 25px; }
             .controls, .reset-group { width: 100%; justify-content: center; gap: 10px; }
@@ -313,8 +314,7 @@
         }
 
         @media (max-width: 480px) {
-            .dash-box { min-width: 100px; }
-            .dash-box span { font-size: 18px; }
+            .dash-box span { font-size: 16px; }
             .item { width: 75px; height: 115px; }
             .item img { width: 40px; height: 40px; }
             .item .name-tag { font-size: 10px; letter-spacing: -0.5px; }
