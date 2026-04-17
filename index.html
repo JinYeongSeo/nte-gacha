@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>이환 가챠 시뮬레이터</title>
+    <style>
+        body { font-family: sans-serif; background-color: #1a1a2e; color: #fff; text-align: center; padding: 50px; }
+        h1 { color: #e94560; }
+        button { padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; background: #e94560; color: white; border: none; border-radius: 8px; transition: 0.2s; }
+        button:hover { background: #d0314c; }
+        #results { margin-top: 40px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .item { padding: 20px; border-radius: 8px; width: 100px; font-weight: bold; display: flex; align-items: center; justify-content: center; text-align: center; height: 80px; }
+        /* 등급별 색상 처리 */
+        .ssr { background: #ffd700; color: #000; box-shadow: 0 0 15px #ffd700; }
+        .sr { background: #a67c00; color: #fff; }
+        .r { background: #4a4a4a; color: #ccc; }
+    </style>
+</head>
+<body>
+    <h1>이환 10연차 시뮬레이터</h1>
+    <button onclick="pullGacha10()">10회 돌리기</button>
+    <div id="results"></div>
+
+    <script>
+        // 확률 설정 (예시: SSR 0.6%, SR 5.1%, R 94.3%)
+        function pullSingle() {
+            const rng = Math.random() * 100;
+            
+            // 이환은 픽뚫이 없으므로 당첨 시 확정 픽업
+            if (rng <= 0.6) return { rank: 'SSR', name: '픽업 캐릭터', class: 'ssr' };
+            if (rng <= 5.7) return { rank: 'SR', name: 'A급 캐릭터', class: 'sr' };
+            return { rank: 'R', name: '일반 무기/재료', class: 'r' };
+        }
+
+        function pullGacha10() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = ''; // 기존 결과 초기화
+            
+            for (let i = 0; i < 10; i++) {
+                const item = pullSingle();
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `item ${item.class}`;
+                itemDiv.innerText = `${item.rank}\n${item.name}`;
+                resultsDiv.appendChild(itemDiv);
+            }
+        }
+    </script>
+</body>
+</html>
