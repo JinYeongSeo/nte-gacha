@@ -828,11 +828,13 @@
                 } else {
                     if (isExtra) {
                         item = Math.random() < 0.5 ? { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' } : { ...getRandomItem(DB.aWeapons), rank: 'A', class: 'a-rank' };
-                    } else if (roll < 13.47) {
+                    } else if (roll < 1.0) { // 딱 여기서 S급 1% 컷 (상시 배너도 이 로직 공유함)
+                        s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : getRandomItem(DB.standardChars)), rank: 'S', class: 's-rank', note: '견습 상자' };
+                    } else if (roll < 14.47) { // S급 1.0% + A급 13.47% = 14.47% (기존 A급 확률 그대로 유지)
                         item = { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' };
                     } else {
-                        if (Math.random()*100 < 0.2) { s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : getRandomItem(DB.standardChars)), rank: 'S', class: 's-rank', note: '견습 상자' }; }
-                        else item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank' };
+                        // 남은 확률은 싹 다 B급
+                        item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank' };
                     }
                 }
             } else {
@@ -841,15 +843,20 @@
                 
                 if (s.pickupGuarPity >= 80) { isS = true; isPickup = true; }
                 else if (s.sGuarPity >= 60) { isS = true; isPickup = Math.random()*100 < 25; } 
-                else if (roll < 3.0) { isS = true; isPickup = Math.random()*100 < 75; } 
+                else if (roll < 3.0) { isS = true; isPickup = Math.random()*100 < 75; } // 여기서 S급 3% 컷
                 
                 if (isS) {
                     s.sCount++; s.sGuarPity = 0;
                     if (isPickup) s.pickupGuarPity = 0;
                     item = { ...(isPickup ? DB.pickupWeapon : getRandomItem(DB.standardWeapons)), rank: 'S', class: 's-rank' };
                 } else {
-                    if (isExtra || Math.random()*100 < 7.0) item = { ...getRandomItem(DB.aWeapons), rank: 'A', class: 'a-rank' };
-                    else item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank' };
+                    if (isExtra) {
+                        item = { ...getRandomItem(DB.aWeapons), rank: 'A', class: 'a-rank' };
+                    } else if (roll < 10.0) { // 무기 S급 3% + 무기 A급 7% = 10% (1차 난수 재활용 최적화)
+                        item = { ...getRandomItem(DB.aWeapons), rank: 'A', class: 'a-rank' };
+                    } else {
+                        item = { ...getRandomItem(DB.bWeapons), rank: 'B', class: 'r-rank' };
+                    }
                 }
             }
             item.dupeMsg = processDuplicate(item);
