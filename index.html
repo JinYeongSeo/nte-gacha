@@ -810,9 +810,17 @@
                     else if (!s.gliderPityUsed && s.gliderPity >= 50) { s.gliderPityUsed = true; gotSkin = true; item = { ...DB.glider, rank: 'GLIDER', class: 'vehicle', note: '50회 확정' }; }
 
                     if (!gotSkin) {
-                        if (Math.random()*100 < 0.33) item = { ...DB.skin, rank: 'SKIN', class: 'skin' };
-                        else if (Math.random()*100 < 0.33) item = { ...DB.vehicle, rank: 'VEHICLE', class: 'vehicle' };
-                        else if (Math.random()*100 < 1.71) item = { ...DB.glider, rank: 'GLIDER', class: 'vehicle' };
+                        // 1.71% 확률로 풍향계 보드 진입 판정
+                        if (Math.random() * 100 < 1.71) {
+                            let innerRoll = Math.random() * 2.0; // 비중: 글라이더 1.7 + 스킨류 0.3 = 2.0
+                            if (innerRoll < 0.15) {
+                                item = { ...DB.skin, rank: 'SKIN', class: 'skin', note: '풍향계 진입' };
+                            } else if (innerRoll < 0.3) {
+                                item = { ...DB.vehicle, rank: 'VEHICLE', class: 'vehicle', note: '풍향계 진입' };
+                            } else {
+                                item = { ...DB.glider, rank: 'GLIDER', class: 'vehicle', note: '풍향계 진입' };
+                            }
+                        }
                     }
                     if(item) { item.dupeMsg = processDuplicate(item); return item; }
                 }
@@ -828,7 +836,7 @@
                 } else {
                     if (isExtra) {
                         item = Math.random() < 0.5 ? { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' } : { ...getRandomItem(DB.aWeapons), rank: 'A', class: 'a-rank' };
-                    } else if (roll < 1.0) { // 딱 여기서 S급 1% 컷 (상시 배너도 이 로직 공유함)
+                    } else if (roll < 1.0) { // S급 1% 컷 (상시 배너도 이 로직 공유함)
                         s.pity = 0; s.sCount++; item = { ...(isPickupBanner ? DB.pickupChar : getRandomItem(DB.standardChars)), rank: 'S', class: 's-rank', note: '견습 상자' };
                     } else if (roll < 14.47) { // S급 1.0% + A급 13.47% = 14.47% (기존 A급 확률 그대로 유지)
                         item = { ...getRandomItem(DB.aChars), rank: 'A', class: 'a-rank' };
@@ -843,7 +851,7 @@
                 
                 if (s.pickupGuarPity >= 80) { isS = true; isPickup = true; }
                 else if (s.sGuarPity >= 60) { isS = true; isPickup = Math.random()*100 < 25; } 
-                else if (roll < 3.0) { isS = true; isPickup = Math.random()*100 < 75; } // 여기서 S급 3% 컷
+                else if (roll < 3.0) { isS = true; isPickup = Math.random()*100 < 75; } // 여기서 무기 S급 3% 컷
                 
                 if (isS) {
                     s.sCount++; s.sGuarPity = 0;
